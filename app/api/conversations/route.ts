@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const { threadId, title } = await req.json()
+    const { threadId, mode, title } = await req.json()
 
     // Get authenticated user
     const supabase = await createClient()
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create conversation using persistence function
-    const conversation = await createConversation(user.id, threadId, title)
+    const conversation = await createConversation(user.id, threadId, mode || 'agent', title)
 
     if (!conversation) {
       return NextResponse.json({ error: 'Failed to create conversation' }, { status: 500 })

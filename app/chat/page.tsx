@@ -108,6 +108,7 @@ export default function ChatPage() {
   const router = useRouter()
   const [useAgentMode, setUseAgentMode] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [modeLocked, setModeLocked] = useState(false)
 
   // Conversation management
   const {
@@ -130,18 +131,25 @@ export default function ChatPage() {
 
   // Handle conversation selection
   const handleConversationSelect = async (conversationId: string) => {
-    await loadConversation(conversationId)
-    // Update agent chat threadId when conversation is loaded
-    if (useAgentMode) {
-      // Clear agent chat messages to prevent mixing with other conversations
-      const { setThreadId, clearMessages } = agentChat
-      if (clearMessages) {
-        clearMessages()
-      }
+    const conversation = conversations.find(c => c.id === conversationId)
+    if (conversation) {
+      // Set and lock the mode based on the conversation's stored mode
+      setUseAgentMode(conversation.mode === 'agent')
+      setModeLocked(true) // Lock the mode toggle when loading existing conversation
 
-      const conversation = conversations.find(c => c.id === conversationId)
-      if (conversation && setThreadId) {
-        setThreadId(conversation.thread_id)
+      await loadConversation(conversationId)
+
+      // Update agent chat threadId when conversation is loaded (only if in agent mode)
+      if (conversation.mode === 'agent') {
+        // Clear agent chat messages to prevent mixing with other conversations
+        const { setThreadId, clearMessages } = agentChat
+        if (clearMessages) {
+          clearMessages()
+        }
+
+        if (setThreadId) {
+          setThreadId(conversation.thread_id)
+        }
       }
     }
   }
@@ -149,7 +157,12 @@ export default function ChatPage() {
 
   // Handle new conversation
   const handleNewConversation = () => {
-    startNewConversation()
+    // Unlock the mode toggle for new conversations
+    setModeLocked(false)
+
+    // Pass the current mode when creating new conversation
+    startNewConversation(useAgentMode ? 'agent' : 'simple')
+
     // Clear threadId and messages for agent chat when starting new conversation
     if (useAgentMode) {
       const { setThreadId, clearMessages } = agentChat
@@ -256,16 +269,18 @@ export default function ChatPage() {
 
           <div className="flex items-center gap-4">
             {/* Agent Mode Toggle */}
-            <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-100 dark:bg-gray-800">
+            <div className={`flex items-center gap-2 px-3 py-1 rounded-lg ${modeLocked ? 'bg-gray-200 dark:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800'}`}>
               <span className={`text-xs font-medium transition-colors ${!useAgentMode ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
                 Simple
               </span>
               <button
-                onClick={() => setUseAgentMode(!useAgentMode)}
+                onClick={() => !modeLocked && setUseAgentMode(!useAgentMode)}
+                disabled={modeLocked}
                 className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
                   useAgentMode ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-                aria-label="Toggle agent mode"
+                } ${modeLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+                aria-label={modeLocked ? "Mode locked for this conversation" : "Toggle agent mode"}
+                title={modeLocked ? "Mode is locked for this conversation" : "Toggle between simple and agent mode"}
               >
                 <span
                   className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
@@ -276,6 +291,11 @@ export default function ChatPage() {
               <span className={`text-xs font-medium transition-colors ${useAgentMode ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
                 Agent
               </span>
+              {modeLocked && (
+                <svg className="w-3 h-3 text-gray-400 dark:text-gray-500 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              )}
             </div>
 
             <span className="text-sm text-gray-600 dark:text-gray-400 hidden sm:block">

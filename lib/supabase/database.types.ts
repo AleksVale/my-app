@@ -53,6 +53,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          mode: string
           thread_id: string
           title: string | null
           updated_at: string | null
@@ -61,6 +62,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
+          mode: string
           thread_id: string
           title?: string | null
           updated_at?: string | null
@@ -69,6 +71,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          mode?: string
           thread_id?: string
           title?: string | null
           updated_at?: string | null

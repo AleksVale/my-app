@@ -8,6 +8,7 @@ export interface Conversation {
   id: string
   user_id: string
   thread_id: string
+  mode: string
   title: string | null
   created_at: string
   updated_at: string
@@ -31,6 +32,7 @@ export interface ConversationMessage {
 export async function createConversation(
   userId: string,
   threadId: string,
+  mode: string,
   title?: string
 ): Promise<Conversation | null> {
   const supabase = await createClient()
@@ -40,6 +42,7 @@ export async function createConversation(
     .insert({
       user_id: userId,
       thread_id: threadId,
+      mode: mode,
       title: title || 'New Conversation',
     })
     .select()
@@ -59,6 +62,7 @@ export async function createConversation(
 export async function getOrCreateConversation(
   userId: string,
   threadId: string,
+  mode: string,
   title?: string
 ): Promise<Conversation | null> {
   const supabase = await createClient()
@@ -76,7 +80,7 @@ export async function getOrCreateConversation(
   }
 
   // Create new conversation if not found
-  return await createConversation(userId, threadId, title)
+  return await createConversation(userId, threadId, mode, title)
 }
 
 /**

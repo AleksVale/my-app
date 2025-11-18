@@ -79,7 +79,7 @@ export function useConversations(userId: string | null) {
   }
 
   // Start a new conversation
-  const startNewConversation = async () => {
+  const startNewConversation = async (mode: string = 'agent') => {
     try {
       setLoading(true)
       const threadId = `thread_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
@@ -89,6 +89,7 @@ export function useConversations(userId: string | null) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           threadId,
+          mode,
           title: 'New Conversation'
         })
       })

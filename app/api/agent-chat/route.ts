@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
 
     // Get or generate thread ID
     const threadId = providedThreadId || generateThreadId()
-    // Get or create conversation in Supabase
-    const conversation = await getOrCreateConversation(user.id, threadId)
+    // Get or create conversation in Supabase (agent mode)
+    const conversation = await getOrCreateConversation(user.id, threadId, 'agent')
 
     if (!conversation) {
       return NextResponse.json(
