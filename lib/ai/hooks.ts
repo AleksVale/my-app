@@ -2,6 +2,7 @@
 
 import { useChat } from '@ai-sdk/react'
 import { useState } from 'react'
+import { ClientMessage } from '../langgraph/hooks'
 
 export function useAIChat() {
   const [input, setInput] = useState('')
@@ -36,12 +37,12 @@ export function useAIChat() {
 /**
  * Hook for agent-powered chat with LangGraph
  */
-export function useAgentChat() {
+export function useAgentChat(initialThreadId?: string | null) {
   const [input, setInput] = useState('')
-  const [messages, setMessages] = useState<any[]>([])
+  const [messages, setMessages] = useState<ClientMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const [threadId, setThreadId] = useState<string | null>(null)
+  const [threadId, setThreadId] = useState<string | null>(initialThreadId || null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value)
@@ -51,7 +52,7 @@ export function useAgentChat() {
     e.preventDefault()
     if (!input.trim() || isLoading) return
 
-    const userMessage = {
+    const userMessage: ClientMessage = {
       id: `user_${Date.now()}`,
       role: 'user',
       content: input.trim(),
@@ -87,7 +88,7 @@ export function useAgentChat() {
       }
 
       // Add assistant message
-      const assistantMessage = {
+      const assistantMessage: ClientMessage = {
         id: data.id || `assistant_${Date.now()}`,
         role: 'assistant',
         content: data.content,
@@ -110,5 +111,6 @@ export function useAgentChat() {
     isLoading,
     error,
     threadId,
+    setThreadId,
   }
 }

@@ -1,13 +1,14 @@
 'use client'
 
 import { useAIChat, useAgentChat } from '@/lib/ai/hooks'
-import { useConversations } from '@/lib/langgraph/hooks'
+import { useConversations, ClientMessage } from '@/lib/langgraph/hooks'
 import { useAuth } from '@/lib/supabase/auth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { SignOutButton } from '@/components/SignOutButton'
 import { ConversationSidebar } from '@/components/ConversationSidebar'
 import ReactMarkdown from 'react-markdown'
+import { BaseMessage } from '@langchain/core/messages'
 
 // Component to render message content with markdown support using react-markdown
 function MessageContent({ content, role }: { content: string; role: string }) {
@@ -114,12 +115,13 @@ export default function ChatPage() {
     currentConversation,
     loadConversation,
     startNewConversation,
+    addMessagesToCurrent,
     loading: conversationsLoading
   } = useConversations(user?.id || null)
 
   // Use appropriate hook based on mode
   const simpleChat = useAIChat()
-  const agentChat = useAgentChat()
+  const agentChat = useAgentChat(currentConversation?.thread_id)
 
   // Select active chat based on mode
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useAgentMode
@@ -129,15 +131,54 @@ export default function ChatPage() {
   // Handle conversation selection
   const handleConversationSelect = async (conversationId: string) => {
     await loadConversation(conversationId)
+    // Update agent chat threadId when conversation is loaded
+    if (useAgentMode) {
+      const { setThreadId } = agentChat
+      const conversation = conversations.find(c => c.id === conversationId)
+      if (conversation && setThreadId) {
+        setThreadId(conversation.thread_id)
+      }
+    }
   }
+
 
   // Handle new conversation
   const handleNewConversation = () => {
     startNewConversation()
+    // Clear threadId for agent chat when starting new conversation
+    if (useAgentMode) {
+      const { setThreadId } = agentChat
+      if (setThreadId) {
+        setThreadId(null)
+      }
+    }
   }
 
   // Get current messages - prefer conversation messages, fallback to hook messages
   const displayMessages = currentConversation?.messages || messages
+
+  // Update agent chat threadId when conversation or mode changes
+  useEffect(() => {
+    if (useAgentMode && currentConversation) {
+      const { setThreadId } = agentChat
+      if (setThreadId) {
+        setThreadId(currentConversation.thread_id)
+      }
+    }
+  }, [useAgentMode, currentConversation, agentChat])
+
+  // Add new agent chat messages to current conversation
+  useEffect(() => {
+    if (useAgentMode && currentConversation && agentChat.messages.length > 0) {
+      // Only add messages that aren't already in the conversation
+      const existingMessageIds = new Set(currentConversation.messages.map(m => m.id))
+      const newMessages = agentChat.messages.filter(m => !existingMessageIds.has(m.id))
+
+      if (newMessages.length > 0) {
+        addMessagesToCurrent(newMessages)
+      }
+    }
+  }, [useAgentMode, currentConversation, agentChat.messages, addMessagesToCurrent])
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -269,18 +310,33 @@ export default function ChatPage() {
               {displayMessages.map((message, index) => {
                 // Handle both UIMessage format and BaseMessage format
                 const isUIMessage = 'parts' in message
-                const textContent = isUIMessage
-                  ? message.parts?.find((part: { type: string; text?: string }) => part.type === 'text')?.text || ''
-                  : typeof message.content === 'string'
-                    ? message.content
-                    : Array.isArray(message.content)
-                      ? message.content
-                          .filter((part: { type?: string; text?: string }) => part.type === 'text')
-                          .map((part: { type?: string; text?: string }) => part.text || '')
-                          .join('')
-                      : JSON.stringify(message.content)
 
-                const messageRole = isUIMessage ? message.role : (message._getType() === 'human' ? 'user' : 'assistant')
+                let textContent = ''
+                let messageRole: 'user' | 'assistant' | 'system' = 'user'
+
+                if (isUIMessage) {
+                  // Handle UIMessage format
+                  const uiMessage = message as ClientMessage
+                  textContent = uiMessage.parts?.find((part) => part.type === 'text')?.text || ''
+                  messageRole = uiMessage.role
+                } else {
+                  // Handle BaseMessage format
+                  const baseMessage = message as BaseMessage
+                  if (typeof baseMessage.content === 'string') {
+                    textContent = baseMessage.content
+                  } else if (Array.isArray(baseMessage.content)) {
+                    textContent = baseMessage.content
+                      .filter((part: unknown) => typeof part === 'object' && part !== null && 'type' in part && part.type === 'text')
+                      .map((part: unknown) => {
+                        const textPart = part as { text?: string }
+                        return textPart.text || ''
+                      })
+                      .join('')
+                  } else {
+                    textContent = JSON.stringify(baseMessage.content)
+                  }
+                  messageRole = baseMessage._getType() === 'human' ? 'user' : 'assistant'
+                }
 
                 return (
                   <div

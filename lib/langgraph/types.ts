@@ -3,9 +3,9 @@ import { BaseMessage } from '@langchain/core/messages'
 
 // Agent state schema with routing support
 export const AgentStateSchema = z.object({
-  messages: z.array(z.any()),
+  messages: z.array(z.unknown()),
   next: z.string().optional(),
-  data: z.record(z.any()).optional(),
+  data: z.record(z.unknown()).optional(),
 })
 
 export type AgentState = z.infer<typeof AgentStateSchema>
@@ -14,7 +14,7 @@ export type AgentState = z.infer<typeof AgentStateSchema>
 export interface MultiAgentState {
   messages: BaseMessage[]
   next?: string // Which node to route to next
-  data?: Record<string, any> // Additional data for agents
+  data?: Record<string, unknown> // Additional data for agents
 }
 
 // Agent response types

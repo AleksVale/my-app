@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runAgent } from '@/lib/langgraph/agent'
-import { createClient } from '@/utils/supabase/server'
 import { HumanMessage, AIMessage } from '@langchain/core/messages'
 
 export const runtime = 'nodejs'
@@ -8,7 +7,7 @@ export const maxDuration = 60 // 60 seconds for agent execution
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages, agentType } = await req.json()
+    const { messages } = await req.json()
 
     // Validate messages
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -31,19 +30,27 @@ export async function POST(req: NextRequest) {
 
     // Convert messages to LangChain format
     const langchainMessages = messages.map((msg: { role: string; content: string }) => {
-      if (msg.role === 'user') {
-        return new HumanMessage(msg.content)
-      } else {
-        return new AIMessage(msg.content)
-      }
+      return new HumanMessage(msg.content)
     })
 
     // Run the agent
     const result = await runAgent(langchainMessages)
 
-    // Extract the last AI message
-    const lastMessage = result.messages[result.messages.length - 1]
-    const responseText = lastMessage?.content || 'No response generated'
+    // Extract the last AI message content
+    const lastMessage = result.messages[result.messages.length - 1] as AIMessage | undefined
+    let responseText = 'No response generated'
+
+    if (lastMessage && typeof lastMessage.content === 'string') {
+      responseText = lastMessage.content
+    } else if (lastMessage && Array.isArray(lastMessage.content)) {
+      responseText = lastMessage.content
+        .filter((part: unknown) => typeof part === 'object' && part !== null && 'type' in part && part.type === 'text')
+        .map((part: unknown) => {
+          const textPart = part as { text?: string }
+          return textPart.text || ''
+        })
+        .join('')
+    }
 
     return NextResponse.json({
       message: responseText,
