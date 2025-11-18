@@ -21,18 +21,31 @@ export default function LoginPage() {
     try {
       console.log('🔐 Tentando fazer login com:', { email, password: '***' })
 
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Fazer login via server action para garantir cookies SSR
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       })
 
-      console.log('🔐 Resposta do login:', { data: data ? { user: data.user ? 'exists' : null, session: data.session ? 'exists' : null } : null, error })
+      const result = await response.json()
 
-      if (error) throw error
+      console.log('🔐 Resposta do login (server):', result)
 
-      console.log('✅ Login bem-sucedido, redirecionando...')
+      if (!response.ok) {
+        throw new Error(result.error || 'Login failed')
+      }
 
-      router.push('/')
+      console.log('✅ Login bem-sucedido via server action')
+
+      // Verificar cookies após login
+      const cookies = document.cookie
+      console.log('🍪 Cookies após login:', cookies)
+
+      console.log('🔄 Redirecionando para /chat...')
+      router.push('/chat')
       router.refresh()
     } catch (error) {
       console.error('❌ Erro no login:', error)
