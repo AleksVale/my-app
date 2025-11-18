@@ -1,7 +1,8 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
-import { AIMessage, HumanMessage } from '@langchain/core/messages'
+import { AIMessage, AIMessageFields, HumanMessage } from '@langchain/core/messages'
 import { MultiAgentState, NodeNames } from '../types'
 import { weatherTool } from '../tools/weather'
+import { StructuredToolCallInput } from '@langchain/core/tools'
 
 /**
  * Weather agent node that handles weather-related queries
@@ -36,7 +37,7 @@ export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<
 
       // Execute the weather tool
       const toolCall = response.tool_calls[0]
-      const toolResult = await weatherTool.invoke(toolCall.args)
+      const toolResult = await weatherTool.invoke(toolCall.args as StructuredToolCallInput<typeof weatherTool.schema>)
 
       console.log('✅ Weather tool result obtained')
 
@@ -56,7 +57,7 @@ export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<
       const finalResponse = await finalLLM.invoke(finalMessages)
 
       return {
-        messages: [...messages, new AIMessage(finalResponse.content)],
+        messages: [...messages, new AIMessage(finalResponse.content as string | AIMessageFields)],
         next: state.data?.needsNews ? NodeNames.NEWS : 'END',
       }
     } else {

@@ -1,7 +1,8 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
-import { AIMessage, HumanMessage } from '@langchain/core/messages'
+import { AIMessage, AIMessageFields, HumanMessage } from '@langchain/core/messages'
 import { MultiAgentState, NodeNames } from '../types'
 import { newsTool } from '../tools/news'
+import { StructuredToolCallInput } from '@langchain/core/tools'
 
 /**
  * News agent node that handles news-related queries
@@ -36,7 +37,7 @@ export async function newsAgentNode(state: MultiAgentState): Promise<Partial<Mul
 
       // Execute the news tool
       const toolCall = response.tool_calls[0]
-      const toolResult = await newsTool.invoke(toolCall.args)
+      const toolResult = await newsTool.invoke(toolCall.args as StructuredToolCallInput<typeof newsTool.schema>)
 
       console.log('✅ News tool result obtained')
 
@@ -56,7 +57,7 @@ export async function newsAgentNode(state: MultiAgentState): Promise<Partial<Mul
       const finalResponse = await finalLLM.invoke(finalMessages)
 
       return {
-        messages: [...messages, new AIMessage(finalResponse.content)],
+        messages: [...messages, new AIMessage(finalResponse.content as string | AIMessageFields)],
         next: 'END',
       }
     } else {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
-import { HumanMessage, AIMessage, BaseMessage } from '@langchain/core/messages'
+import { HumanMessage, BaseMessage } from '@langchain/core/messages'
 import { createAgentGraph } from '@/lib/langgraph/graph'
 import {
   getOrCreateConversation,
@@ -119,8 +119,10 @@ export async function POST(req: NextRequest) {
       responseContent = lastMessage.content
     } else if (Array.isArray(lastMessage.content)) {
       responseContent = lastMessage.content
-        .filter((part: any) => part.type === 'text')
-        .map((part: any) => part.text)
+        .filter((part: unknown): part is { type: string; text?: string } =>
+          typeof part === 'object' && part !== null && typeof part === 'object' && 'type' in part && part.type === 'text' && 'text' in part
+        )
+        .map((part: { type: string; text?: string }) => part.text || '')
         .join('')
     } else {
       responseContent = JSON.stringify(lastMessage.content)
