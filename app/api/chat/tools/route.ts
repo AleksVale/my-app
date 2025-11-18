@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     // This endpoint demonstrates how to use tools with the Vercel AI SDK
     // All calls are automatically traced in LangSmith if configured
     const result = await generateText({
-      model: google('gemini-pro'),
+      model: google('gemini-2.0-flash'), // Using proven model
       system: 'You are a helpful assistant.',
       messages: messages || [
         { role: 'user', content: 'What is the weather in San Francisco?' },

@@ -3,7 +3,7 @@ import { google } from '@ai-sdk/google'
 
 export async function streamAIResponse(prompt: string) {
   const result = await streamText({
-    model: google('gemini-pro'),
+    model: google('gemini-2.0-flash'), // Using proven model
     prompt,
   })
 
@@ -12,7 +12,7 @@ export async function streamAIResponse(prompt: string) {
 
 export async function generateAIResponse(prompt: string) {
   const result = await generateText({
-    model: google('gemini-pro'),
+    model: google('gemini-2.0-flash'), // Using proven model
     prompt,
   })
 

@@ -44,7 +44,7 @@ DATABASE_URL=your_database_connection_string
 1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey) or [Google Cloud Console](https://console.cloud.google.com/)
 2. Create a new API key for Gemini
 3. Add the `GOOGLE_API_KEY` to your `.env.local` file
-4. The project uses `gemini-pro` model by default
+4. The project uses `gemini-1.5-flash` model by default (faster and more cost-effective)
 
 ### 4. Set Up LangSmith (Optional but Recommended)
 
