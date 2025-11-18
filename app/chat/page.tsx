@@ -12,9 +12,12 @@ export default function ChatPage() {
   const router = useRouter()
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useAIChat()
 
+  console.log('💬 ChatPage renderizada:', { user: user ? { id: user.id, email: user.email } : null, authLoading })
+
   useEffect(() => {
+    console.log('💬 useEffect executado:', { authLoading, user: !!user })
     if (!authLoading && !user) {
-      console.log('Redirecting to login because user is not authenticated')
+      console.log('🔄 Redirecting to login because user is not authenticated')
       router.push('/login')
     }
   }, [user, authLoading, router])

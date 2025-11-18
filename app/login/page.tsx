@@ -19,16 +19,23 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('🔐 Tentando fazer login com:', { email, password: '***' })
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
 
+      console.log('🔐 Resposta do login:', { data: data ? { user: data.user ? 'exists' : null, session: data.session ? 'exists' : null } : null, error })
+
       if (error) throw error
+
+      console.log('✅ Login bem-sucedido, redirecionando...')
 
       router.push('/')
       router.refresh()
     } catch (error) {
+      console.error('❌ Erro no login:', error)
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)

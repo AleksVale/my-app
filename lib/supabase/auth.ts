@@ -11,9 +11,14 @@ export function useAuth() {
   const router = useRouter()
   const supabase = createClient()
 
+  console.log('🔑 useAuth inicializado')
+
   useEffect(() => {
+    console.log('🔑 useAuth useEffect executado')
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔑 Sessão inicial obtida:', session ? { user: session.user ? 'exists' : null } : 'nenhuma sessão')
       setUser(session?.user ?? null)
       setLoading(false)
     })
@@ -22,6 +27,7 @@ export function useAuth() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log('🔑 Mudança de estado de auth:', _event, session ? { user: session.user ? 'exists' : null } : 'nenhuma sessão')
       setUser(session?.user ?? null)
       setLoading(false)
     })

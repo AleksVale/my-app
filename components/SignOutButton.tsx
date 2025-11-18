@@ -10,8 +10,10 @@ export function SignOutButton() {
   const [loading, setLoading] = useState(false)
 
   const handleSignOut = async () => {
+    console.log('🚪 Fazendo logout...')
     setLoading(true)
-    await supabase.auth.signOut()
+    const { error } = await supabase.auth.signOut()
+    console.log('🚪 Logout realizado:', error ? `Erro: ${error.message}` : 'Sucesso')
     router.push('/login')
     router.refresh()
   }

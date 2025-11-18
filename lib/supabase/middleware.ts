@@ -35,11 +35,16 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  console.log('🛡️ Middleware executado para:', request.nextUrl.pathname)
+  console.log('🛡️ Usuário detectado:', user ? { id: user.id, email: user.email } : 'Nenhum usuário')
+
   // Protect routes that require authentication
   const protectedPaths = ['/chat', '/dashboard']
   const isProtectedPath = protectedPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   )
+
+  console.log('🛡️ É caminho protegido:', isProtectedPath)
 
   if (
     !user &&
@@ -48,6 +53,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/signup') &&
     !request.nextUrl.pathname.startsWith('/auth')
   ) {
+    console.log('🔄 Redirecionando para login - usuário não autenticado em caminho protegido')
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
@@ -59,6 +65,7 @@ export async function updateSession(request: NextRequest) {
     (request.nextUrl.pathname.startsWith('/login') ||
       request.nextUrl.pathname.startsWith('/signup'))
   ) {
+    console.log('🔄 Redirecionando usuário autenticado da página de login/signup para home')
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)
