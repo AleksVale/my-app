@@ -26,6 +26,34 @@ export interface ConversationMessage {
 }
 
 /**
+ * Create a new conversation
+ */
+export async function createConversation(
+  userId: string,
+  threadId: string,
+  title?: string
+): Promise<Conversation | null> {
+  const supabase = await createClient()
+
+  const { data: newConversation, error: createError } = await supabase
+    .from('conversations')
+    .insert({
+      user_id: userId,
+      thread_id: threadId,
+      title: title || 'New Conversation',
+    })
+    .select()
+    .single()
+
+  if (createError) {
+    console.error('Error creating conversation:', createError)
+    return null
+  }
+
+  return newConversation as Conversation
+}
+
+/**
  * Get or create a conversation by thread_id
  */
 export async function getOrCreateConversation(
@@ -48,22 +76,7 @@ export async function getOrCreateConversation(
   }
 
   // Create new conversation if not found
-  const { data: newConversation, error: createError } = await supabase
-    .from('conversations')
-    .insert({
-      user_id: userId,
-      thread_id: threadId,
-      title: title || 'New Conversation',
-    })
-    .select()
-    .single()
-
-  if (createError) {
-    console.error('Error creating conversation:', createError)
-    return null
-  }
-
-  return newConversation as Conversation
+  return await createConversation(userId, threadId, title)
 }
 
 /**

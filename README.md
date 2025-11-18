@@ -121,6 +121,12 @@ my-app/
 
 ## Features
 
+### 💬 Modern Chat Interface
+- **Conversation Sidebar**: Like Gemini/ChatGPT with expandable history
+- **Persistent Conversations**: All chats saved to database with thread management
+- **Clean Layout**: Responsive design with collapsible sidebar
+- **Search Conversations**: Find past chats quickly
+
 ### 🤖 Dual Chat Modes
 
 **Simple Chat Mode**
