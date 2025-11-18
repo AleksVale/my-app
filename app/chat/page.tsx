@@ -79,7 +79,14 @@ export default function ChatPage() {
                 <div className="text-sm font-semibold mb-1">
                   {message.role === 'user' ? 'You' : 'AI'}
                 </div>
-                <div className="whitespace-pre-wrap">{message.content}</div>
+                <div className="whitespace-pre-wrap">
+                  {message.parts?.map((part, index) => {
+                    if (part.type === 'text') {
+                      return part.text
+                    }
+                    return ''
+                  }).join('') || 'No content'}
+                </div>
               </div>
             ))}
             {isLoading && (

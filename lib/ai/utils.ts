@@ -14,7 +14,6 @@ export async function generateAIResponse(prompt: string) {
   const result = await generateText({
     model: google('gemini-pro'),
     prompt,
-    maxTokens: 1000,
   })
 
   return result

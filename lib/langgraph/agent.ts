@@ -40,23 +40,14 @@ const workflow = new StateGraph<AgentState>({
   },
 })
 
-// Add nodes
-workflow.addNode('agent', agentNode)
-
-// Set entry point
-workflow.addEdge(START, 'agent')
-workflow.addEdge('agent', END)
-
-// Compile the graph
-export const agentGraph = workflow.compile()
-
-// Helper function to run the agent
+// Helper function to run the agent (simplified version)
 export async function runAgent(messages: (HumanMessage | AIMessage)[]): Promise<AgentState> {
-  const initialState: AgentState = {
-    messages,
-  }
+  const response = await llm.invoke(messages)
 
-  const result = await agentGraph.invoke(initialState)
-  return result as AgentState
+  return {
+    messages: [...messages, response],
+    next: undefined,
+    data: {},
+  }
 }
 

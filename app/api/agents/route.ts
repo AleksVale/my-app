@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { runAgent } from '@/lib/langgraph/agent'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/utils/supabase/server'
 import { HumanMessage, AIMessage } from '@langchain/core/messages'
 
 export const runtime = 'nodejs'

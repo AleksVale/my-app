@@ -1,6 +1,5 @@
-import * as ai from 'ai'
-import { wrapAISDK } from 'langsmith/experimental/vercel'
+import { generateText, streamText } from 'ai'
 
-// Wrap the AI SDK functions with LangSmith for observability
-export const { generateText, streamText } = wrapAISDK(ai)
+// Export the AI SDK functions directly (LangSmith integration can be added later)
+export { generateText, streamText }
 
