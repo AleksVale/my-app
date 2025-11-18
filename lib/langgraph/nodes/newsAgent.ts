@@ -26,20 +26,14 @@ export async function newsAgentNode(state: MultiAgentState): Promise<Partial<Mul
   }).bindTools([newsTool])
 
   try {
-    console.log('📰 News agent processing query...')
-
     // Invoke LLM with tools
     const response = await llm.invoke(messages)
 
     // Check if the model wants to use tools
     if (response.tool_calls && response.tool_calls.length > 0) {
-      console.log('🔧 News agent using tool:', response.tool_calls[0].name)
-
       // Execute the news tool
       const toolCall = response.tool_calls[0]
       const toolResult = await newsTool.invoke(toolCall.args as StructuredToolCallInput<typeof newsTool.schema>)
-
-      console.log('✅ News tool result obtained')
 
       // Create a final response incorporating the tool result
       const finalLLM = new ChatGoogleGenerativeAI({

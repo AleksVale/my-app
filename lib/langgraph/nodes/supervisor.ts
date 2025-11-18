@@ -51,8 +51,6 @@ User: "What's the weather in NYC and any news about climate change?" → "weathe
     const response = await llm.invoke(analysisMessages)
     const routing = response.content.toString().trim().toLowerCase()
 
-    console.log('🎯 Supervisor routing decision:', routing)
-
     // Determine next node based on routing
     if (routing.includes('weather') && routing.includes('news')) {
       // For multi-agent queries, we'll go to weather first, then news

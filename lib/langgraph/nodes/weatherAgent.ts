@@ -26,20 +26,14 @@ export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<
   }).bindTools([weatherTool])
 
   try {
-    console.log('🌤️ Weather agent processing query...')
-
     // Invoke LLM with tools
     const response = await llm.invoke(messages)
 
     // Check if the model wants to use tools
     if (response.tool_calls && response.tool_calls.length > 0) {
-      console.log('🔧 Weather agent using tool:', response.tool_calls[0].name)
-
       // Execute the weather tool
       const toolCall = response.tool_calls[0]
       const toolResult = await weatherTool.invoke(toolCall.args as StructuredToolCallInput<typeof weatherTool.schema>)
-
-      console.log('✅ Weather tool result obtained')
 
       // Create a final response incorporating the tool result
       const finalLLM = new ChatGoogleGenerativeAI({

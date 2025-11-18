@@ -17,17 +17,10 @@ export function useAIChat() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (input.trim()) {
-      console.log('📤 Enviando mensagem:', input.trim())
       // Follow the documentation pattern
       sendMessage({ text: input.trim() })
       setInput('')
     }
-  }
-
-  // Debug logs
-  if (typeof window !== 'undefined') {
-    console.log('🎯 useAIChat status:', status)
-    console.log('🎯 useAIChat messages count:', messages.length)
   }
 
   return {
@@ -72,8 +65,6 @@ export function useAgentChat() {
     setError(null)
 
     try {
-      console.log('🤖 Sending to agent-chat API...')
-      
       const response = await fetch('/api/agent-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -89,12 +80,10 @@ export function useAgentChat() {
       }
 
       const data = await response.json()
-      console.log('✅ Agent response received')
 
       // Store thread ID for conversation continuity
       if (data.threadId && !threadId) {
         setThreadId(data.threadId)
-        console.log('🧵 Thread ID stored:', data.threadId)
       }
 
       // Add assistant message
@@ -107,7 +96,6 @@ export function useAgentChat() {
 
       setMessages((prev) => [...prev, assistantMessage])
     } catch (err) {
-      console.error('Agent chat error:', err)
       setError(err instanceof Error ? err : new Error('Unknown error'))
     } finally {
       setIsLoading(false)

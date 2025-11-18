@@ -39,12 +39,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    console.log('🤖 Agent Chat API: User authenticated:', user.id)
 
     // Get or generate thread ID
     const threadId = providedThreadId || generateThreadId()
-    console.log('🧵 Thread ID:', threadId)
-
     // Get or create conversation in Supabase
     const conversation = await getOrCreateConversation(user.id, threadId)
 
@@ -55,13 +52,10 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    console.log('💬 Conversation ID:', conversation.id)
-
     // Load existing messages from Supabase if this is a continuation
     let existingMessages: BaseMessage[] = []
     if (providedThreadId) {
       existingMessages = await loadConversationMessages(conversation.id)
-      console.log('📚 Loaded', existingMessages.length, 'existing messages')
     }
 
     // Update conversation title from first user message if it's still the default
@@ -74,7 +68,6 @@ export async function POST(req: NextRequest) {
           : firstUserMessage
 
         await updateConversation(conversation.id, { title })
-        console.log('🏷️ Updated conversation title:', title)
       }
     }
 
@@ -110,12 +103,8 @@ export async function POST(req: NextRequest) {
       'multi-agent-chat'
     )
 
-    console.log('🚀 Invoking agent graph...')
-
     // Invoke the graph with LangSmith tracing
     const result = await tracedInvoke(allMessages)
-
-    console.log('✅ Graph execution completed')
 
     // Extract the final assistant message
     const finalMessages = result.messages || []
@@ -148,11 +137,8 @@ export async function POST(req: NextRequest) {
       agent_type: result.next || 'general',
     })
 
-    console.log('💾 Messages saved to Supabase')
-
     // Update conversation timestamp to reflect the latest activity
     await updateConversation(conversation.id, { updated_at: true })
-    console.log('⏰ Updated conversation timestamp')
 
     // Return response in a format compatible with useChat
     return NextResponse.json({

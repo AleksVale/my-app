@@ -19,8 +19,6 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      console.log('🔐 Tentando fazer login com:', { email, password: '***' })
-
       // Fazer login via server action para garantir cookies SSR
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -32,23 +30,13 @@ export default function LoginPage() {
 
       const result = await response.json()
 
-      console.log('🔐 Resposta do login (server):', result)
-
       if (!response.ok) {
         throw new Error(result.error || 'Login failed')
       }
 
-      console.log('✅ Login bem-sucedido via server action')
-
-      // Verificar cookies após login
-      const cookies = document.cookie
-      console.log('🍪 Cookies após login:', cookies)
-
-      console.log('🔄 Redirecionando para /chat...')
       router.push('/chat')
       router.refresh()
     } catch (error) {
-      console.error('❌ Erro no login:', error)
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)

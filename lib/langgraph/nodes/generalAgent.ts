@@ -41,15 +41,11 @@ Remember: Be helpful underneath the sarcasm, and make conversations more enterta
   })
 
   try {
-    console.log('😏 Sarcastic general agent processing query...')
-
     // Combine system prompt with conversation messages
     const conversationMessages = [sarcasticSystemPrompt, ...messages]
 
     // Invoke LLM for conversational response
     const response = await llm.invoke(conversationMessages)
-
-    console.log('✅ General agent response generated')
 
     return {
       messages: [...messages, response],
