@@ -7,6 +7,7 @@ import {
   loadConversationMessages,
   saveMessage,
   generateThreadId,
+  updateConversation,
 } from '@/lib/langgraph/persistence'
 import { traceGraphExecution } from '@/lib/ai/langsmith'
 
@@ -61,6 +62,20 @@ export async function POST(req: NextRequest) {
     if (providedThreadId) {
       existingMessages = await loadConversationMessages(conversation.id)
       console.log('📚 Loaded', existingMessages.length, 'existing messages')
+    }
+
+    // Update conversation title from first user message if it's still the default
+    if (conversation.title === 'New Conversation' && messages.length > 0) {
+      const firstUserMessage = messages[0].content || messages[0].text || ''
+      if (firstUserMessage) {
+        // Create a concise title from the first message
+        const title = firstUserMessage.length > 50
+          ? `${firstUserMessage.substring(0, 50)}...`
+          : firstUserMessage
+
+        await updateConversation(conversation.id, { title })
+        console.log('🏷️ Updated conversation title:', title)
+      }
     }
 
     // Convert incoming messages to LangChain format
@@ -134,6 +149,10 @@ export async function POST(req: NextRequest) {
     })
 
     console.log('💾 Messages saved to Supabase')
+
+    // Update conversation timestamp to reflect the latest activity
+    await updateConversation(conversation.id, { updated_at: true })
+    console.log('⏰ Updated conversation timestamp')
 
     // Return response in a format compatible with useChat
     return NextResponse.json({

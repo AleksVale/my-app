@@ -207,6 +207,63 @@ export async function updateConversationTitle(
 }
 
 /**
+ * Update conversation timestamp (updated_at)
+ */
+export async function updateConversationTimestamp(
+  conversationId: string
+): Promise<boolean> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('conversations')
+    .update({ updated_at: new Date().toISOString() })
+    .eq('id', conversationId)
+
+  if (error) {
+    console.error('Error updating conversation timestamp:', error)
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Update conversation title and timestamp
+ */
+export async function updateConversation(
+  conversationId: string,
+  updates: { title?: string; updated_at?: boolean }
+): Promise<boolean> {
+  const supabase = await createClient()
+
+  const updateData: Record<string, string> = {}
+
+  if (updates.title !== undefined) {
+    updateData.title = updates.title
+  }
+
+  if (updates.updated_at) {
+    updateData.updated_at = new Date().toISOString()
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return true // No updates needed
+  }
+
+  const { error } = await supabase
+    .from('conversations')
+    .update(updateData)
+    .eq('id', conversationId)
+
+  if (error) {
+    console.error('Error updating conversation:', error)
+    return false
+  }
+
+  return true
+}
+
+/**
  * Get all conversations for a user
  */
 export async function getUserConversations(userId: string): Promise<Conversation[]> {
@@ -217,7 +274,6 @@ export async function getUserConversations(userId: string): Promise<Conversation
     .select('*')
     .eq('user_id', userId)
     .order('updated_at', { ascending: false })
-
   if (error) {
     console.error('Error getting user conversations:', error)
     return []
