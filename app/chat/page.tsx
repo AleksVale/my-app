@@ -133,7 +133,12 @@ export default function ChatPage() {
     await loadConversation(conversationId)
     // Update agent chat threadId when conversation is loaded
     if (useAgentMode) {
-      const { setThreadId } = agentChat
+      // Clear agent chat messages to prevent mixing with other conversations
+      const { setThreadId, clearMessages } = agentChat
+      if (clearMessages) {
+        clearMessages()
+      }
+
       const conversation = conversations.find(c => c.id === conversationId)
       if (conversation && setThreadId) {
         setThreadId(conversation.thread_id)
@@ -145,9 +150,12 @@ export default function ChatPage() {
   // Handle new conversation
   const handleNewConversation = () => {
     startNewConversation()
-    // Clear threadId for agent chat when starting new conversation
+    // Clear threadId and messages for agent chat when starting new conversation
     if (useAgentMode) {
-      const { setThreadId } = agentChat
+      const { setThreadId, clearMessages } = agentChat
+      if (clearMessages) {
+        clearMessages()
+      }
       if (setThreadId) {
         setThreadId(null)
       }

@@ -103,6 +103,11 @@ export function useAgentChat(initialThreadId?: string | null) {
     }
   }
 
+  const clearMessages = () => {
+    setMessages([])
+    setInput('')
+  }
+
   return {
     messages,
     input,
@@ -112,5 +117,6 @@ export function useAgentChat(initialThreadId?: string | null) {
     error,
     threadId,
     setThreadId,
+    clearMessages,
   }
 }
