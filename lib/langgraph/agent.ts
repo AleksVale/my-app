@@ -11,7 +11,7 @@ const agentNode = async (state: AgentState): Promise<Partial<AgentState>> => {
   const llm = new ChatGoogleGenerativeAI({
     modelName: 'gemini-2.0-flash', // Keep original working model
     temperature: 0,
-    apiKey: process.env.GOOGLE_API_KEY,
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
   })
 
   // Process the messages through the LLM
@@ -46,7 +46,7 @@ export async function runAgent(messages: (HumanMessage | AIMessage)[]): Promise<
   const llm = new ChatGoogleGenerativeAI({
     modelName: 'gemini-2.0-flash', // Keep original working model
     temperature: 0,
-    apiKey: process.env.GOOGLE_API_KEY,
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
   })
 
   const response = await llm.invoke(messages)

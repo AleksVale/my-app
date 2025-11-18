@@ -35,6 +35,12 @@ LANGSMITH_API_KEY=your_langsmith_api_key
 LANGSMITH_PROJECT=your_project_name
 LANGSMITH_TRACING=true
 
+# WeatherAPI.com Configuration (for weather agent)
+WEATHER_API_KEY=your_weather_api_key
+
+# The Guardian API Configuration (for news agent)
+GUARDIAN_API_KEY=your_guardian_api_key
+
 # Database (optional, if using direct connection)
 DATABASE_URL=your_database_connection_string
 ```
@@ -57,7 +63,19 @@ DATABASE_URL=your_database_connection_string
    - `LANGSMITH_TRACING=true` - Enable tracing
 5. All AI SDK calls will automatically be traced in LangSmith
 
-### 5. Set Up Supabase
+### 5. Set Up WeatherAPI.com (for Weather Agent)
+
+1. Sign up at [WeatherAPI.com](https://www.weatherapi.com/)
+2. Get your free API key from the dashboard
+3. Add `WEATHER_API_KEY` to your `.env.local` file
+
+### 6. Set Up The Guardian API (for News Agent)
+
+1. Sign up at [The Guardian Open Platform](https://open-platform.theguardian.com/)
+2. Register for an API key
+3. Add `GUARDIAN_API_KEY` to your `.env.local` file
+
+### 7. Set Up Supabase
 
 1. Create a project at [Supabase](https://supabase.com/)
 2. Get your project URL and anon key from the project settings
@@ -67,7 +85,7 @@ DATABASE_URL=your_database_connection_string
    npm run generate:types
    ```
 
-### 6. Run Development Server
+### 8. Run Development Server
 
 ```bash
 npm run dev
@@ -101,10 +119,36 @@ my-app/
 └── vercel.json           # Vercel deployment configuration
 ```
 
+## Features
+
+### 🤖 Dual Chat Modes
+
+**Simple Chat Mode**
+- Direct AI responses using Google Gemini
+- Fast, streaming responses
+- Perfect for general conversations
+
+**Agent Chat Mode** (New! 🎉)
+- Multi-agent system powered by LangGraph
+- Specialized agents for different tasks:
+  - **Weather Agent**: Real-time weather data from WeatherAPI.com
+  - **News Agent**: Latest news from The Guardian
+  - **General Agent**: Conversational AI for everything else
+- Intelligent routing based on query intent
+- Full conversation persistence with Supabase
+- LangSmith observability for all agent interactions
+
 ## API Routes
 
 ### `/api/chat`
 Streaming AI chat endpoint using Vercel AI SDK with LangSmith observability.
+
+### `/api/agent-chat` (New!)
+Multi-agent chat endpoint powered by LangGraph. Features:
+- Supervisor-based routing to specialized agents
+- Tool usage for weather and news queries
+- Conversation persistence with thread management
+- Full LangSmith tracing and observability
 
 ### `/api/chat/tools`
 AI chat endpoint with tools support and LangSmith tracing.
@@ -114,13 +158,13 @@ LangGraph agent execution endpoint for complex agent workflows.
 
 ## Usage Examples
 
-### Using AI Chat Hook
+### Using Simple Chat Hook
 
 ```tsx
 'use client'
 import { useAIChat } from '@/lib/ai/hooks'
 
-export default function ChatComponent() {
+export default function SimpleChatComponent() {
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useAIChat()
 
   return (
@@ -133,6 +177,36 @@ export default function ChatComponent() {
         <div key={m.id}>{m.role}: {m.content}</div>
       ))}
     </form>
+  )
+}
+```
+
+### Using Agent Chat Hook (New!)
+
+```tsx
+'use client'
+import { useAgentChat } from '@/lib/ai/hooks'
+
+export default function AgentChatComponent() {
+  const { messages, input, handleInputChange, handleSubmit, isLoading, threadId } = useAgentChat()
+
+  return (
+    <div>
+      <p>Thread ID: {threadId}</p>
+      <form onSubmit={handleSubmit}>
+        <input 
+          value={input} 
+          onChange={handleInputChange}
+          placeholder="Try: What's the weather in London?"
+        />
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Processing...' : 'Send'}
+        </button>
+      </form>
+      {messages.map((m) => (
+        <div key={m.id}>{m.role}: {m.content}</div>
+      ))}
+    </div>
   )
 }
 ```
@@ -167,14 +241,110 @@ const result = await response.json()
 // All calls are automatically traced in LangSmith
 ```
 
+## Multi-Agent Architecture
+
+The LangGraph multi-agent system uses a supervisor pattern to route queries to specialized agents:
+
+```
+User Query
+    ↓
+Supervisor Node (Intent Analysis)
+    ↓
+    ├─→ Weather Agent → Weather Tool (WeatherAPI.com)
+    ├─→ News Agent → News Tool (The Guardian API)
+    └─→ General Agent → Conversational AI
+    ↓
+Response Synthesis
+    ↓
+User
+```
+
+### Agent Capabilities
+
+**Supervisor**
+- Analyzes user intent using Gemini
+- Routes to appropriate specialized agent(s)
+- Can coordinate multiple agents for complex queries
+
+**Weather Agent**
+- Fetches real-time weather data
+- Provides current conditions and forecasts
+- Formats data in user-friendly markdown
+
+**News Agent**
+- Searches The Guardian's article database
+- Returns relevant news with summaries and links
+- Handles topical queries about current events
+
+**General Agent**
+- Handles conversational queries
+- Provides explanations and general information
+- Fallback for queries not requiring tools
+
+### Persistence Strategy
+
+**LangGraph Checkpointing** (Active Sessions)
+- In-memory state management using `MemorySaver`
+- Maintains conversation context during active sessions
+- Thread-based conversation tracking
+
+**Supabase** (Long-term Storage)
+- Permanent storage of all conversations and messages
+- User-specific conversation history
+- Enables conversation resumption and analytics
+
+## Database Schema
+
+Run the migration in `lib/supabase/migrations/001_conversations.sql` to create:
+
+**conversations table**
+- `id`: UUID primary key
+- `user_id`: References auth.users
+- `thread_id`: Unique conversation identifier
+- `title`: Conversation title
+- `created_at`, `updated_at`: Timestamps
+
+**conversation_messages table**
+- `id`: UUID primary key
+- `conversation_id`: References conversations
+- `role`: user | assistant | system
+- `content`: Message text
+- `metadata`: JSONB for additional data
+- `created_at`: Timestamp
+
+Both tables have Row Level Security (RLS) policies ensuring users only access their own data.
+
+## Testing
+
+See [TESTING_GUIDE.md](./TESTING_GUIDE.md) for comprehensive testing instructions including:
+
+- Weather query test cases
+- News query test cases
+- Multi-agent scenarios
+- Conversation persistence verification
+- LangSmith observability checks
+- Troubleshooting guide
+
+Example test queries:
+- "What's the weather in London?"
+- "Latest news about AI"
+- "Weather in NYC and news about climate change"
+
 ## Deploy on Vercel
 
 1. Push your code to a Git repository
 2. Import your project on [Vercel](https://vercel.com/new)
-3. Add your environment variables in the Vercel dashboard
+3. Add your environment variables in the Vercel dashboard:
+   - All Supabase keys
+   - `GOOGLE_API_KEY`
+   - `WEATHER_API_KEY`
+   - `GUARDIAN_API_KEY`
+   - `LANGSMITH_API_KEY` and related vars (optional)
 4. Deploy!
 
 The project is configured for optimal Vercel deployment with serverless functions.
+
+**Note:** Agent chat requires `nodejs` runtime (already configured in `app/api/agent-chat/route.ts`)
 
 ## Learn More
 
