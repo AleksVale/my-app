@@ -3,8 +3,8 @@
 import { useAgentChat } from '@/lib/ai/hooks'
 import { useConversations, ClientMessage } from '@/lib/langgraph/hooks'
 import { useAuth } from '@/lib/supabase/auth'
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useState, useCallback } from 'react'
 import { SignOutButton } from '@/components/SignOutButton'
 import { ConversationSidebar } from '@/components/ConversationSidebar'
 import ReactMarkdown from 'react-markdown'
@@ -124,6 +124,9 @@ export default function ChatPage() {
   // Use agent chat
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } = agentChat
 
+  // Get URL search parameters
+  const searchParams = useSearchParams()
+
   // Function to scroll to bottom with smooth behavior
   const scrollToBottom = (behavior: 'smooth' | 'instant' = 'smooth') => {
     requestAnimationFrame(() => {
@@ -143,7 +146,7 @@ export default function ChatPage() {
   }
 
   // Handle conversation selection
-  const handleConversationSelect = async (conversationId: string) => {
+  const handleConversationSelect = useCallback(async (conversationId: string) => {
     const conversation = conversations.find(c => c.id === conversationId)
     if (conversation) {
 
@@ -157,6 +160,9 @@ export default function ChatPage() {
       if (setThreadId) {
         setThreadId(conversation.thread_id)
       }
+
+      // Update URL to persist conversation ID
+      router.replace(`/chat?id=${conversationId}`, { scroll: false })
 
       // Scroll to bottom after conversation is loaded
       const scrollToBottom = () => {
@@ -177,7 +183,7 @@ export default function ChatPage() {
       setTimeout(scrollToBottom, 200)
       setTimeout(scrollToBottom, 500)
     }
-  }
+  }, [conversations, loadConversation, agentChat, router])
 
 
   // Handle new conversation
@@ -193,6 +199,9 @@ export default function ChatPage() {
     if (setThreadId) {
       setThreadId(null)
     }
+
+    // Clear conversation ID from URL
+    router.replace('/chat', { scroll: false })
   }
 
   // Get current messages - prefer conversation messages, fallback to hook messages
@@ -228,6 +237,20 @@ export default function ChatPage() {
     }
   }, [displayMessages, isLoading])
 
+  // Load conversation from URL on mount (after conversations are loaded)
+  useEffect(() => {
+    const conversationId = searchParams.get('id')
+    if (conversationId && conversations.length > 0 && !currentConversation && user?.id) {
+      // Only load if we have conversations loaded, no current conversation, and user is authenticated
+      const conversation = conversations.find(c => c.id === conversationId)
+      if (conversation) {
+        handleConversationSelect(conversationId)
+      } else {
+        // If conversation not found, remove invalid ID from URL
+        router.replace('/chat', { scroll: false })
+      }
+    }
+  }, [conversations, currentConversation, user?.id, searchParams, handleConversationSelect, router])
 
   useEffect(() => {
     if (!authLoading && !user) {
