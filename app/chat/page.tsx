@@ -6,39 +6,98 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Link from 'next/link'
 import { SignOutButton } from '@/components/SignOutButton'
-// Simple markdown-like text renderer (install react-markdown later for full support)
+import ReactMarkdown from 'react-markdown'
+
+// Component to render message content with markdown support using react-markdown
 function MessageContent({ content, role }: { content: string; role: string }) {
-  // Basic text formatting - replace with react-markdown when installed
-  const formatText = (text: string) => {
-    return text
-      .split('\n')
-      .map((line, index) => {
-        // Basic formatting
-        line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        line = line.replace(/\*(.*?)\*/g, '<em>$1</em>')
-        line = line.replace(/`(.*?)`/g, '<code>$1</code>')
-
-        // Handle lists
-        if (line.match(/^[-*]\s/)) {
-          return `<li>${line.substring(2)}</li>`
-        }
-        if (line.match(/^\d+\.\s/)) {
-          const num = line.match(/^\d+/)?.[0] || ''
-          return `<li value="${num}">${line.substring(num.length + 2)}</li>`
-        }
-
-        return line ? `<p>${line}</p>` : '<br/>'
-      })
-      .join('')
-  }
-
   return (
-    <div
-      className={`text-sm leading-relaxed ${
-        role === 'user' ? 'text-white' : 'text-gray-800 dark:text-gray-200'
-      }`}
-      dangerouslySetInnerHTML={{ __html: formatText(content) }}
-    />
+    <ReactMarkdown
+      components={{
+        code({ className, children }) {
+          const isCodeBlock = className && className.includes('language-')
+          return isCodeBlock ? (
+            <pre className={`bg-gray-100 dark:bg-gray-800 p-3 rounded-md my-2 overflow-x-auto text-sm font-mono ${
+              role === 'user' ? 'bg-blue-500/10 border border-blue-400/30' : ''
+            }`}>
+              <code className={className}>
+                {children}
+              </code>
+            </pre>
+          ) : (
+            <code
+              className={`${
+                role === 'user'
+                  ? 'bg-blue-500/20 text-blue-100 border border-blue-400/30'
+                  : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+              } px-2 py-1 rounded text-sm font-mono`}
+            >
+              {children}
+            </code>
+          )
+        },
+        p({ children }) {
+          return <p className="mb-3 last:mb-0 leading-relaxed">{children}</p>
+        },
+        ul({ children }) {
+          return <ul className="list-disc list-inside mb-3 space-y-1 ml-4">{children}</ul>
+        },
+        ol({ children }) {
+          return <ol className="list-decimal list-inside mb-3 space-y-1 ml-4">{children}</ol>
+        },
+        li({ children }) {
+          return <li className="leading-relaxed">{children}</li>
+        },
+        blockquote({ children }) {
+          return (
+            <blockquote className={`border-l-4 pl-4 italic my-3 ${
+              role === 'user'
+                ? 'border-blue-400 bg-blue-500/5'
+                : 'border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50'
+            }`}>
+              {children}
+            </blockquote>
+          )
+        },
+        h1({ children }) {
+          return <h1 className="text-xl font-bold mb-3 mt-4 first:mt-0">{children}</h1>
+        },
+        h2({ children }) {
+          return <h2 className="text-lg font-bold mb-2 mt-3 first:mt-0">{children}</h2>
+        },
+        h3({ children }) {
+          return <h3 className="text-base font-semibold mb-2 mt-3 first:mt-0">{children}</h3>
+        },
+        strong({ children }) {
+          return <strong className="font-semibold">{children}</strong>
+        },
+        em({ children }) {
+          return <em className="italic">{children}</em>
+        },
+        hr() {
+          return <hr className={`my-4 border-t ${
+            role === 'user' ? 'border-blue-400/30' : 'border-gray-300 dark:border-gray-600'
+          }`} />
+        },
+        a({ children, href }) {
+          return (
+            <a
+              href={href}
+              className={`${
+                role === 'user'
+                  ? 'text-blue-200 hover:text-blue-100'
+                  : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'
+              } underline hover:no-underline transition-colors`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {children}
+            </a>
+          )
+        }
+      }}
+    >
+      {content}
+    </ReactMarkdown>
   )
 }
 
