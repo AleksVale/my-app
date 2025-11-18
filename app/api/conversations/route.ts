@@ -7,7 +7,7 @@ export const runtime = 'nodejs'
 /**
  * GET /api/conversations - Get all conversations for the authenticated user
  */
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     // Get authenticated user
     const supabase = await createClient()

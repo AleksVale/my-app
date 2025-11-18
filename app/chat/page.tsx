@@ -1,6 +1,6 @@
 'use client'
 
-import { useAIChat, useAgentChat } from '@/lib/ai/hooks'
+import { useAgentChat } from '@/lib/ai/hooks'
 import { useConversations, ClientMessage } from '@/lib/langgraph/hooks'
 import { useAuth } from '@/lib/supabase/auth'
 import { useRouter } from 'next/navigation'
@@ -106,9 +106,7 @@ function MessageContent({ content, role }: { content: string; role: string }) {
 export default function ChatPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
-  const [useAgentMode, setUseAgentMode] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-  const [modeLocked, setModeLocked] = useState(false)
 
   // Conversation management
   const {
@@ -120,36 +118,26 @@ export default function ChatPage() {
     loading: conversationsLoading
   } = useConversations(user?.id || null)
 
-  // Use appropriate hook based on mode
-  const simpleChat = useAIChat()
+  // Always use agent mode
   const agentChat = useAgentChat(currentConversation?.thread_id)
 
-  // Select active chat based on mode
-  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useAgentMode
-    ? agentChat
-    : simpleChat
+  // Use agent chat
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = agentChat
 
   // Handle conversation selection
   const handleConversationSelect = async (conversationId: string) => {
     const conversation = conversations.find(c => c.id === conversationId)
     if (conversation) {
-      // Set and lock the mode based on the conversation's stored mode
-      setUseAgentMode(conversation.mode === 'agent')
-      setModeLocked(true) // Lock the mode toggle when loading existing conversation
 
       await loadConversation(conversationId)
 
-      // Update agent chat threadId when conversation is loaded (only if in agent mode)
-      if (conversation.mode === 'agent') {
-        // Clear agent chat messages to prevent mixing with other conversations
-        const { setThreadId, clearMessages } = agentChat
-        if (clearMessages) {
-          clearMessages()
-        }
-
-        if (setThreadId) {
-          setThreadId(conversation.thread_id)
-        }
+      // Always use agent mode - clear messages and set threadId
+      const { setThreadId, clearMessages } = agentChat
+      if (clearMessages) {
+        clearMessages()
+      }
+      if (setThreadId) {
+        setThreadId(conversation.thread_id)
       }
     }
   }
@@ -157,40 +145,35 @@ export default function ChatPage() {
 
   // Handle new conversation
   const handleNewConversation = () => {
-    // Unlock the mode toggle for new conversations
-    setModeLocked(false)
-
-    // Pass the current mode when creating new conversation
-    startNewConversation(useAgentMode ? 'agent' : 'simple')
+    // Always create conversations in agent mode
+    startNewConversation('agent')
 
     // Clear threadId and messages for agent chat when starting new conversation
-    if (useAgentMode) {
-      const { setThreadId, clearMessages } = agentChat
-      if (clearMessages) {
-        clearMessages()
-      }
-      if (setThreadId) {
-        setThreadId(null)
-      }
+    const { setThreadId, clearMessages } = agentChat
+    if (clearMessages) {
+      clearMessages()
+    }
+    if (setThreadId) {
+      setThreadId(null)
     }
   }
 
   // Get current messages - prefer conversation messages, fallback to hook messages
   const displayMessages = currentConversation?.messages || messages
 
-  // Update agent chat threadId when conversation or mode changes
+  // Update agent chat threadId when conversation changes
   useEffect(() => {
-    if (useAgentMode && currentConversation) {
+    if (currentConversation) {
       const { setThreadId } = agentChat
       if (setThreadId) {
         setThreadId(currentConversation.thread_id)
       }
     }
-  }, [useAgentMode, currentConversation, agentChat])
+  }, [currentConversation, agentChat])
 
   // Add new agent chat messages to current conversation
   useEffect(() => {
-    if (useAgentMode && currentConversation && agentChat.messages.length > 0) {
+    if (currentConversation && agentChat.messages.length > 0) {
       // Only add messages that aren't already in the conversation
       const existingMessageIds = new Set(currentConversation.messages.map(m => m.id))
       const newMessages = agentChat.messages.filter(m => !existingMessageIds.has(m.id))
@@ -199,7 +182,7 @@ export default function ChatPage() {
         addMessagesToCurrent(newMessages)
       }
     }
-  }, [useAgentMode, currentConversation, agentChat.messages, addMessagesToCurrent])
+  }, [currentConversation, agentChat.messages, addMessagesToCurrent])
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -268,34 +251,14 @@ export default function ChatPage() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Agent Mode Toggle */}
-            <div className={`flex items-center gap-2 px-3 py-1 rounded-lg ${modeLocked ? 'bg-gray-200 dark:bg-gray-700' : 'bg-gray-100 dark:bg-gray-800'}`}>
-              <span className={`text-xs font-medium transition-colors ${!useAgentMode ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                Simple
+            {/* Agent Mode Indicator */}
+            <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+              <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                Agent Mode
               </span>
-              <button
-                onClick={() => !modeLocked && setUseAgentMode(!useAgentMode)}
-                disabled={modeLocked}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-                  useAgentMode ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-                } ${modeLocked ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
-                aria-label={modeLocked ? "Mode locked for this conversation" : "Toggle agent mode"}
-                title={modeLocked ? "Mode is locked for this conversation" : "Toggle between simple and agent mode"}
-              >
-                <span
-                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                    useAgentMode ? 'translate-x-5' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-              <span className={`text-xs font-medium transition-colors ${useAgentMode ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`}>
-                Agent
-              </span>
-              {modeLocked && (
-                <svg className="w-3 h-3 text-gray-400 dark:text-gray-500 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-              )}
             </div>
 
             <span className="text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
@@ -312,26 +275,13 @@ export default function ChatPage() {
               {displayMessages.length === 0 && (
                 <div className="text-center py-12">
                   <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-sm font-medium mb-4">
-                    {useAgentMode ? (
-                      <>
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                        Agent Mode Active
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                        Simple Chat Mode
-                      </>
-                    )}
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    Agent Mode Active
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400">
-                    {useAgentMode
-                      ? 'Agent mode uses specialized AI agents for weather, news, and general queries. Try asking about weather or news!'
-                      : 'Start a conversation by typing a message below.'}
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">
+                    Agent mode uses specialized AI agents for weather, news, and general queries. Try asking about weather or news!
                   </p>
                 </div>
               )}
@@ -411,7 +361,7 @@ export default function ChatPage() {
                 type="text"
                 value={input}
                 onChange={handleInputChange}
-                placeholder={useAgentMode ? "Ask about weather, news, or anything else..." : "Type your message here..."}
+                placeholder="Ask about weather, news, or anything else..."
                 className="flex-1 rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 dark:focus:border-blue-400 dark:focus:ring-blue-400/20 transition-colors"
                 disabled={isLoading}
               />
@@ -431,9 +381,7 @@ export default function ChatPage() {
               </button>
             </form>
             <div className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-              {useAgentMode
-                ? 'Press Enter to send • Agent mode with weather & news capabilities • Powered by LangGraph'
-                : 'Press Enter to send • AI responses may contain markdown formatting'}
+              Press Enter to send • Agent mode with weather & news capabilities • Powered by LangGraph
             </div>
           </div>
         </div>

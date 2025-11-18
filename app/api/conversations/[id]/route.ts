@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { loadConversationMessages } from '@/lib/langgraph/persistence'
-import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages'
 
 export const runtime = 'nodejs'
 
@@ -9,7 +8,7 @@ export const runtime = 'nodejs'
  * GET /api/conversations/[id] - Load a specific conversation with messages
  */
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
