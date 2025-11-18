@@ -36,14 +36,11 @@ export default function SignupPage() {
       const { error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
       })
 
       if (error) throw error
 
-      setMessage('Check your email to confirm your account!')
+      setMessage('Account created successfully! You can now sign in.')
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {

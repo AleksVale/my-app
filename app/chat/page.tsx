@@ -14,6 +14,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!authLoading && !user) {
+      console.log('Redirecting to login because user is not authenticated')
       router.push('/login')
     }
   }, [user, authLoading, router])
