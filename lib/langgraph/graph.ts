@@ -1,4 +1,4 @@
-import { StateGraph, END, MemorySaver, Checkpoint } from '@langchain/langgraph'
+import { StateGraph, END, START, MemorySaver } from '@langchain/langgraph'
 import { BaseMessage } from '@langchain/core/messages'
 import { MultiAgentState, NodeNames } from './types'
 import { supervisorNode } from './nodes/supervisor'
@@ -10,8 +10,11 @@ import { generalAgentNode } from './nodes/generalAgent'
  * Creates and compiles the multi-agent graph with checkpointing
  */
 export function createAgentGraph() {
-  // Define the state channels
-  const graphBuilder = new StateGraph<MultiAgentState>({
+  // Create memory saver for checkpointing
+  const checkpointer = new MemorySaver()
+
+  // Create the graph using fluent API
+  const graph = new StateGraph<MultiAgentState>({
     channels: {
       messages: {
         reducer: (current: BaseMessage[], update: BaseMessage[]) => {
@@ -28,7 +31,7 @@ export function createAgentGraph() {
         default: () => undefined,
       },
       data: {
-        reducer: (current: Record<string, any> | undefined, update: Record<string, any> | undefined) => {
+        reducer: (current: Record<string, unknown> | undefined, update: Record<string, unknown> | undefined) => {
           // Merge data objects
           return { ...current, ...update }
         },
@@ -36,53 +39,38 @@ export function createAgentGraph() {
       },
     },
   })
-
-  // Add all nodes to the graph
-  graphBuilder.addNode(NodeNames.SUPERVISOR, supervisorNode)
-  graphBuilder.addNode(NodeNames.WEATHER, weatherAgentNode)
-  graphBuilder.addNode(NodeNames.NEWS, newsAgentNode)
-  graphBuilder.addNode(NodeNames.GENERAL, generalAgentNode)
-
-  // Set the entry point
-  graphBuilder.setEntryPoint(NodeNames.SUPERVISOR)
-
-  // Add conditional edges from supervisor to agents
-  graphBuilder.addConditionalEdges(
+    .addNode(NodeNames.SUPERVISOR, supervisorNode)
+    .addNode(NodeNames.WEATHER, weatherAgentNode)
+    .addNode(NodeNames.NEWS, newsAgentNode)
+    .addNode(NodeNames.GENERAL, generalAgentNode)
+    .addEdge(START, NodeNames.SUPERVISOR)
+    .addConditionalEdges(
     NodeNames.SUPERVISOR,
     (state: MultiAgentState) => {
       // Route based on the 'next' field set by supervisor
-      return state.next || NodeNames.END
+        return state.next || 'END'
     },
     {
       [NodeNames.WEATHER]: NodeNames.WEATHER,
       [NodeNames.NEWS]: NodeNames.NEWS,
       [NodeNames.GENERAL]: NodeNames.GENERAL,
-      [NodeNames.END]: END,
+        'END': END,
     }
   )
-
-  // Add conditional edges from weather agent
-  graphBuilder.addConditionalEdges(
+    .addConditionalEdges(
     NodeNames.WEATHER,
     (state: MultiAgentState) => {
       // If we need news after weather, go to news, otherwise end
-      return state.next || NodeNames.END
+        return state.next || 'END'
     },
     {
       [NodeNames.NEWS]: NodeNames.NEWS,
-      [NodeNames.END]: END,
+        'END': END,
     }
   )
-
-  // Add edges from other agents to END
-  graphBuilder.addEdge(NodeNames.NEWS, END)
-  graphBuilder.addEdge(NodeNames.GENERAL, END)
-
-  // Create memory saver for checkpointing
-  const checkpointer = new MemorySaver()
-
-  // Compile the graph with checkpointing
-  const graph = graphBuilder.compile({ checkpointer })
+    .addEdge(NodeNames.NEWS, END)
+    .addEdge(NodeNames.GENERAL, END)
+    .compile({ checkpointer })
 
   return graph
 }

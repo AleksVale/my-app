@@ -21,7 +21,7 @@ export interface ConversationMessage {
   conversation_id: string
   role: 'user' | 'assistant' | 'system'
   content: string
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   created_at: string
 }
 
@@ -99,7 +99,7 @@ export async function loadConversationMessages(
   }
 
   // Convert to LangChain messages
-  return messages.map((msg: any) => {
+  return messages.map((msg: { role: string; content: string }) => {
     const content = msg.content
     switch (msg.role) {
       case 'user':
@@ -121,7 +121,7 @@ export async function saveMessage(
   conversationId: string,
   role: 'user' | 'assistant' | 'system',
   content: string,
-  metadata: Record<string, any> = {}
+  metadata: Record<string, unknown> = {}
 ): Promise<ConversationMessage | null> {
   const supabase = await createClient()
 

@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Conversation } from './persistence'
-import { BaseMessage } from '@langchain/core/messages'
 
 // Client-side message format
 export interface ClientMessage {
@@ -22,7 +21,7 @@ export function useConversations(userId: string | null) {
   const [error, setError] = useState<string | null>(null)
 
   // Load user conversations via API
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     if (!userId) return
 
     try {
@@ -42,7 +41,7 @@ export function useConversations(userId: string | null) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [userId])
 
   // Load a specific conversation with messages via API
   const loadConversation = async (conversationId: string) => {

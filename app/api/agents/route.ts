@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     // }
 
     // Convert messages to LangChain format
-    const langchainMessages = messages.map((msg: any) => {
+    const langchainMessages = messages.map((msg: { role: string; content: string }) => {
       if (msg.role === 'user') {
         return new HumanMessage(msg.content)
       } else {

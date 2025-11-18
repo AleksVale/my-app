@@ -11,7 +11,7 @@ export async function generalAgentNode(state: MultiAgentState): Promise<Partial<
   if (messages.length === 0) {
     return {
       messages: [new AIMessage('Hello! How can I help you today?')],
-      next: NodeNames.END,
+      next: 'END',
     }
   }
 
@@ -32,14 +32,14 @@ export async function generalAgentNode(state: MultiAgentState): Promise<Partial<
 
     return {
       messages: [...messages, response],
-      next: NodeNames.END,
+      next: 'END',
     }
   } catch (error) {
     console.error('General agent error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return {
       messages: [...messages, new AIMessage(`I encountered an error: ${errorMessage}`)],
-      next: NodeNames.END,
+      next: 'END',
     }
   }
 }

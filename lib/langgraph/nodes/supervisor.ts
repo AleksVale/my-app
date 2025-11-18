@@ -11,7 +11,7 @@ export async function supervisorNode(state: MultiAgentState): Promise<Partial<Mu
 
   if (!lastMessage) {
     return {
-      next: NodeNames.END,
+      next: 'END',
     }
   }
 

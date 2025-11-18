@@ -25,8 +25,8 @@ export default function ForgotPasswordPage() {
       if (error) throw error
 
       setMessage('Check your email for the password reset link!')
-    } catch (error: any) {
-      setError(error.message || 'An error occurred')
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }

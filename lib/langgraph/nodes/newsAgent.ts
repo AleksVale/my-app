@@ -13,7 +13,7 @@ export async function newsAgentNode(state: MultiAgentState): Promise<Partial<Mul
   if (!lastUserMessage) {
     return {
       messages: [new AIMessage('I need a question to help you with news information.')],
-      next: NodeNames.END,
+      next: 'END',
     }
   }
 
@@ -57,13 +57,13 @@ export async function newsAgentNode(state: MultiAgentState): Promise<Partial<Mul
 
       return {
         messages: [...messages, new AIMessage(finalResponse.content)],
-        next: NodeNames.END,
+        next: 'END',
       }
     } else {
       // Model responded without using tools
       return {
         messages: [...messages, response],
-        next: NodeNames.END,
+        next: 'END',
       }
     }
   } catch (error) {
@@ -71,7 +71,7 @@ export async function newsAgentNode(state: MultiAgentState): Promise<Partial<Mul
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return {
       messages: [...messages, new AIMessage(`I encountered an error while fetching news: ${errorMessage}`)],
-      next: NodeNames.END,
+      next: 'END',
     }
   }
 }

@@ -13,7 +13,7 @@ export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<
   if (!lastUserMessage) {
     return {
       messages: [new AIMessage('I need a question to help you with weather information.')],
-      next: state.data?.needsNews ? NodeNames.NEWS : NodeNames.END,
+      next: state.data?.needsNews ? NodeNames.NEWS : 'END',
     }
   }
 
@@ -57,13 +57,13 @@ export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<
 
       return {
         messages: [...messages, new AIMessage(finalResponse.content)],
-        next: state.data?.needsNews ? NodeNames.NEWS : NodeNames.END,
+        next: state.data?.needsNews ? NodeNames.NEWS : 'END',
       }
     } else {
       // Model responded without using tools
       return {
         messages: [...messages, response],
-        next: state.data?.needsNews ? NodeNames.NEWS : NodeNames.END,
+        next: state.data?.needsNews ? NodeNames.NEWS : 'END',
       }
     }
   } catch (error) {
@@ -71,7 +71,7 @@ export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return {
       messages: [...messages, new AIMessage(`I encountered an error while fetching weather information: ${errorMessage}`)],
-      next: state.data?.needsNews ? NodeNames.NEWS : NodeNames.END,
+      next: state.data?.needsNews ? NodeNames.NEWS : 'END',
     }
   }
 }
