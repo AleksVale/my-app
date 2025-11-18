@@ -124,6 +124,24 @@ export default function ChatPage() {
   // Use agent chat
   const { messages, input, handleInputChange, handleSubmit, isLoading, error } = agentChat
 
+  // Function to scroll to bottom with smooth behavior
+  const scrollToBottom = (behavior: 'smooth' | 'instant' = 'smooth') => {
+    requestAnimationFrame(() => {
+      // The scrollable container is the parent of the parent of .chat-messages
+      const chatMessages = document.querySelector('.chat-messages')
+      const scrollableContainer = chatMessages?.parentElement?.parentElement as HTMLElement
+
+      if (scrollableContainer) {
+        scrollableContainer.scrollTo({
+          top: scrollableContainer.scrollHeight,
+          behavior
+        })
+      } else {
+        console.log('Scrollable container not found for smooth scroll')
+      }
+    })
+  }
+
   // Handle conversation selection
   const handleConversationSelect = async (conversationId: string) => {
     const conversation = conversations.find(c => c.id === conversationId)
@@ -139,6 +157,25 @@ export default function ChatPage() {
       if (setThreadId) {
         setThreadId(conversation.thread_id)
       }
+
+      // Scroll to bottom after conversation is loaded
+      const scrollToBottom = () => {
+        // The scrollable container is the parent of the parent of .chat-messages
+        const chatMessages = document.querySelector('.chat-messages')
+        const scrollableContainer = chatMessages?.parentElement?.parentElement as HTMLElement
+
+        if (scrollableContainer) {
+          console.log('Scrolling to bottom, scrollHeight:', scrollableContainer.scrollHeight)
+          scrollableContainer.scrollTop = scrollableContainer.scrollHeight
+        } else {
+          console.log('Scrollable container not found')
+        }
+      }
+
+      // Try scrolling multiple times with increasing delays
+      setTimeout(scrollToBottom, 100)
+      setTimeout(scrollToBottom, 200)
+      setTimeout(scrollToBottom, 500)
     }
   }
 
@@ -184,15 +221,13 @@ export default function ChatPage() {
     }
   }, [currentConversation, agentChat.messages, addMessagesToCurrent])
 
-  // Scroll to bottom when new messages arrive
+  // Scroll to bottom when display messages change or during loading (streaming)
   useEffect(() => {
-    if (messages.length > 0) {
-      const chatContainer = document.querySelector('.chat-messages')
-      if (chatContainer) {
-        chatContainer.scrollTop = chatContainer.scrollHeight
-      }
+    if (displayMessages.length > 0) {
+      scrollToBottom()
     }
-  }, [messages])
+  }, [displayMessages, isLoading])
+
 
   useEffect(() => {
     if (!authLoading && !user) {
