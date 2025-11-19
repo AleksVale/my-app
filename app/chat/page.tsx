@@ -18,20 +18,18 @@ function MessageContent({ content, role }: { content: string; role: string }) {
         code({ className, children }) {
           const isCodeBlock = className && className.includes('language-')
           return isCodeBlock ? (
-            <pre className={`bg-gray-100 dark:bg-gray-800 p-3 rounded-md my-2 overflow-x-auto text-sm font-mono ${
-              role === 'user' ? 'bg-blue-500/10 border border-blue-400/30' : ''
-            }`}>
+            <pre className={`bg-gray-100 dark:bg-gray-800 p-3 rounded-md my-2 overflow-x-auto text-sm font-mono ${role === 'user' ? 'bg-blue-500/10 border border-blue-400/30' : ''
+              }`}>
               <code className={className}>
                 {children}
               </code>
             </pre>
           ) : (
             <code
-              className={`${
-                role === 'user'
-                  ? 'bg-blue-500/20 text-blue-100 border border-blue-400/30'
-                  : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
-              } px-2 py-1 rounded text-sm font-mono`}
+              className={`${role === 'user'
+                ? 'bg-blue-500/20 text-blue-100 border border-blue-400/30'
+                : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                } px-2 py-1 rounded text-sm font-mono`}
             >
               {children}
             </code>
@@ -51,11 +49,10 @@ function MessageContent({ content, role }: { content: string; role: string }) {
         },
         blockquote({ children }) {
           return (
-            <blockquote className={`border-l-4 pl-4 italic my-3 ${
-              role === 'user'
-                ? 'border-blue-400 bg-blue-500/5'
-                : 'border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50'
-            }`}>
+            <blockquote className={`border-l-4 pl-4 italic my-3 ${role === 'user'
+              ? 'border-blue-400 bg-blue-500/5'
+              : 'border-gray-400 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50'
+              }`}>
               {children}
             </blockquote>
           )
@@ -76,19 +73,17 @@ function MessageContent({ content, role }: { content: string; role: string }) {
           return <em className="italic">{children}</em>
         },
         hr() {
-          return <hr className={`my-4 border-t ${
-            role === 'user' ? 'border-blue-400/30' : 'border-gray-300 dark:border-gray-600'
-          }`} />
+          return <hr className={`my-4 border-t ${role === 'user' ? 'border-blue-400/30' : 'border-gray-300 dark:border-gray-600'
+            }`} />
         },
         a({ children, href }) {
           return (
             <a
               href={href}
-              className={`${
-                role === 'user'
-                  ? 'text-blue-200 hover:text-blue-100'
-                  : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'
-              } underline hover:no-underline transition-colors`}
+              className={`${role === 'user'
+                ? 'text-blue-200 hover:text-blue-100'
+                : 'text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300'
+                } underline hover:no-underline transition-colors`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -103,7 +98,9 @@ function MessageContent({ content, role }: { content: string; role: string }) {
   )
 }
 
-export default function ChatPage() {
+import { Suspense } from 'react'
+
+function ChatContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -288,9 +285,8 @@ export default function ChatPage() {
       />
 
       {/* Main Chat Area */}
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${
-        sidebarCollapsed ? 'ml-16' : 'ml-80'
-      }`}>
+      <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarCollapsed ? 'ml-16' : 'ml-80'
+        }`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 shadow-sm">
           <div className="flex items-center gap-4">
@@ -377,11 +373,10 @@ export default function ChatPage() {
                 return (
                   <div
                     key={isUIMessage ? message.id : `msg-${index}`}
-                    className={`rounded-lg p-4 ${
-                      messageRole === 'user'
-                        ? 'ml-auto max-w-[80%] bg-blue-600 text-white shadow-lg'
-                        : 'mr-auto max-w-[80%] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
-                    }`}
+                    className={`rounded-lg p-4 ${messageRole === 'user'
+                      ? 'ml-auto max-w-[80%] bg-blue-600 text-white shadow-lg'
+                      : 'mr-auto max-w-[80%] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm'
+                      }`}
                   >
                     <div className="text-xs font-medium mb-2 opacity-75">
                       {messageRole === 'user' ? 'You' : 'AI Assistant'}
@@ -445,6 +440,22 @@ export default function ChatPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="mb-4 text-lg text-gray-600 dark:text-gray-400">
+            Loading chat...
+          </div>
+        </div>
+      </div>
+    }>
+      <ChatContent />
+    </Suspense>
   )
 }
 

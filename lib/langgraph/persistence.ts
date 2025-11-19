@@ -1,30 +1,9 @@
 import { createClient } from '@/utils/supabase/server'
 import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages'
+import { Tables } from '@/lib/supabase/database.types'
 
-/**
- * Interface for conversation data
- */
-export interface Conversation {
-  id: string
-  user_id: string
-  thread_id: string
-  mode: string
-  title: string | null
-  created_at: string
-  updated_at: string
-}
+export type Conversation = Tables<'conversations'>
 
-/**
- * Interface for conversation message data
- */
-export interface ConversationMessage {
-  id: string
-  conversation_id: string
-  role: 'user' | 'assistant' | 'system'
-  content: string
-  metadata: Record<string, unknown>
-  created_at: string
-}
 
 /**
  * Create a new conversation
@@ -34,7 +13,7 @@ export async function createConversation(
   threadId: string,
   mode: string,
   title?: string
-): Promise<Conversation | null> {
+): Promise<Tables<'conversations'> | null> {
   const supabase = await createClient()
 
   const { data: newConversation, error: createError } = await supabase
@@ -53,7 +32,7 @@ export async function createConversation(
     return null
   }
 
-  return newConversation as Conversation
+  return newConversation
 }
 
 /**
@@ -64,7 +43,7 @@ export async function getOrCreateConversation(
   threadId: string,
   mode: string,
   title?: string
-): Promise<Conversation | null> {
+): Promise<Tables<'conversations'> | null> {
   const supabase = await createClient()
 
   // Try to find existing conversation
@@ -76,7 +55,7 @@ export async function getOrCreateConversation(
     .single()
 
   if (existing && !findError) {
-    return existing as Conversation
+    return existing
   }
 
   // Create new conversation if not found
@@ -103,7 +82,7 @@ export async function loadConversationMessages(
   }
 
   // Convert to LangChain messages
-  return messages.map((msg: { role: string; content: string }) => {
+  return messages.map((msg) => {
     const content = msg.content
     switch (msg.role) {
       case 'user':
@@ -126,8 +105,11 @@ export async function saveMessage(
   role: 'user' | 'assistant' | 'system',
   content: string,
   metadata: Record<string, unknown> = {}
-): Promise<ConversationMessage | null> {
+): Promise<Tables<'conversation_messages'> | null> {
   const supabase = await createClient()
+
+  // Ensure metadata is a valid JSON object for Supabase
+  const safeMetadata = metadata as unknown as { [key: string]: any }
 
   const { data, error } = await supabase
     .from('conversation_messages')
@@ -135,7 +117,7 @@ export async function saveMessage(
       conversation_id: conversationId,
       role,
       content,
-      metadata,
+      metadata: safeMetadata,
     })
     .select()
     .single()
@@ -145,7 +127,7 @@ export async function saveMessage(
     return null
   }
 
-  return data as ConversationMessage
+  return data
 }
 
 /**
@@ -159,7 +141,7 @@ export async function saveMessages(
 
   const messagesToInsert = messages.map((msg) => {
     let role: 'user' | 'assistant' | 'system' = 'user'
-    
+
     if (msg._getType() === 'human') {
       role = 'user'
     } else if (msg._getType() === 'ai') {
@@ -270,7 +252,7 @@ export async function updateConversation(
 /**
  * Get all conversations for a user
  */
-export async function getUserConversations(userId: string): Promise<Conversation[]> {
+export async function getUserConversations(userId: string): Promise<Tables<'conversations'>[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -283,7 +265,7 @@ export async function getUserConversations(userId: string): Promise<Conversation
     return []
   }
 
-  return data as Conversation[]
+  return data
 }
 
 /**
@@ -312,4 +294,3 @@ export async function deleteConversation(conversationId: string): Promise<boolea
 export function generateThreadId(): string {
   return `thread_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
 }
-

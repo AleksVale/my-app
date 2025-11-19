@@ -29,7 +29,8 @@ export function ConversationSidebar({
     conversation.thread_id.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return ''
     const date = new Date(dateString)
     const now = new Date()
     const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
@@ -66,9 +67,8 @@ export function ConversationSidebar({
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <svg
-              className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${
-                isCollapsed ? 'rotate-180' : ''
-              }`}
+              className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? 'rotate-180' : ''
+                }`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -166,11 +166,10 @@ export function ConversationSidebar({
                 >
                   <div className="flex items-start gap-3">
                     <svg
-                      className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
-                        currentConversationId === conversation.id
+                      className={`w-4 h-4 mt-0.5 flex-shrink-0 ${currentConversationId === conversation.id
                           ? 'text-blue-600 dark:text-blue-400'
                           : 'text-gray-400 dark:text-gray-500'
-                      }`}
+                        }`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -179,11 +178,10 @@ export function ConversationSidebar({
                     </svg>
                     {!isCollapsed && (
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${
-                          currentConversationId === conversation.id
+                        <p className={`text-sm font-medium truncate ${currentConversationId === conversation.id
                             ? 'text-blue-900 dark:text-blue-100'
                             : 'text-gray-900 dark:text-white'
-                        }`}>
+                          }`}>
                           {conversation.title || 'Untitled Conversation'}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
