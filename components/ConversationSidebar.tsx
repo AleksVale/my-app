@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Conversation } from '@/lib/langgraph/persistence'
+import { SidebarSkeleton } from './SidebarSkeleton'
 
 interface ConversationSidebarProps {
   conversations: Conversation[]
@@ -159,14 +160,7 @@ export function ConversationSidebar({
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="p-4 text-center">
-              <div className="mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
-              {!isCollapsed && (
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Loading conversations...
-                </p>
-              )}
-            </div>
+            <SidebarSkeleton />
           ) : filteredConversations.length === 0 ? (
             <div className="p-4 text-center">
               {!isCollapsed ? (

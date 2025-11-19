@@ -9,6 +9,7 @@ import { SignOutButton } from '@/components/SignOutButton'
 import { ConversationSidebar } from '@/components/ConversationSidebar'
 import ReactMarkdown from 'react-markdown'
 import { BaseMessage } from '@langchain/core/messages'
+import { ChatSkeleton } from '@/components/ChatSkeleton'
 
 // Component to render message content with markdown support using react-markdown
 function MessageContent({ content, role }: { content: string; role: string }) {
@@ -139,6 +140,7 @@ function ChatContent() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [isSwitching, setIsSwitching] = useState(false)
 
   // Conversation management
   const {
@@ -184,42 +186,47 @@ function ChatContent() {
     async (conversationId: string) => {
       const conversation = conversations.find((c) => c.id === conversationId)
       if (conversation) {
-        await loadConversation(conversationId)
+        setIsSwitching(true)
+        try {
+          await loadConversation(conversationId)
 
-        // Always use agent mode - clear messages and set threadId
-        const { setThreadId, clearMessages } = agentChat
-        if (clearMessages) {
-          clearMessages()
-        }
-        if (setThreadId) {
-          setThreadId(conversation.thread_id)
-        }
-
-        // Update URL to persist conversation ID
-        router.replace(`/chat?id=${conversationId}`, { scroll: false })
-
-        // Scroll to bottom after conversation is loaded
-        const scrollToBottom = () => {
-          // The scrollable container is the parent of the parent of .chat-messages
-          const chatMessages = document.querySelector('.chat-messages')
-          const scrollableContainer = chatMessages?.parentElement
-            ?.parentElement as HTMLElement
-
-          if (scrollableContainer) {
-            console.log(
-              'Scrolling to bottom, scrollHeight:',
-              scrollableContainer.scrollHeight
-            )
-            scrollableContainer.scrollTop = scrollableContainer.scrollHeight
-          } else {
-            console.log('Scrollable container not found')
+          // Always use agent mode - clear messages and set threadId
+          const { setThreadId, clearMessages } = agentChat
+          if (clearMessages) {
+            clearMessages()
           }
-        }
+          if (setThreadId) {
+            setThreadId(conversation.thread_id)
+          }
 
-        // Try scrolling multiple times with increasing delays
-        setTimeout(scrollToBottom, 100)
-        setTimeout(scrollToBottom, 200)
-        setTimeout(scrollToBottom, 500)
+          // Update URL to persist conversation ID
+          router.replace(`/chat?id=${conversationId}`, { scroll: false })
+
+          // Scroll to bottom after conversation is loaded
+          const scrollToBottom = () => {
+            // The scrollable container is the parent of the parent of .chat-messages
+            const chatMessages = document.querySelector('.chat-messages')
+            const scrollableContainer = chatMessages?.parentElement
+              ?.parentElement as HTMLElement
+
+            if (scrollableContainer) {
+              console.log(
+                'Scrolling to bottom, scrollHeight:',
+                scrollableContainer.scrollHeight
+              )
+              scrollableContainer.scrollTop = scrollableContainer.scrollHeight
+            } else {
+              console.log('Scrollable container not found')
+            }
+          }
+
+          // Try scrolling multiple times with increasing delays
+          setTimeout(scrollToBottom, 100)
+          setTimeout(scrollToBottom, 200)
+          setTimeout(scrollToBottom, 500)
+        } finally {
+          setIsSwitching(false)
+        }
       }
     },
     [conversations, loadConversation, agentChat, router]
@@ -407,7 +414,9 @@ function ChatContent() {
         <div className="flex-1 overflow-y-auto px-6 py-6">
           <div className="mx-auto max-w-4xl">
             <div className="chat-messages space-y-6">
-              {displayMessages.length === 0 && (
+              {conversationsLoading || isSwitching ? (
+                <ChatSkeleton />
+              ) : displayMessages.length === 0 ? (
                 <div className="py-12 text-center">
                   <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
                     <svg
@@ -430,68 +439,69 @@ function ChatContent() {
                     general queries. Try asking about weather or news!
                   </p>
                 </div>
-              )}
-              {displayMessages.map((message, index) => {
-                // Handle both UIMessage format and BaseMessage format
-                const isUIMessage = 'parts' in message
+              ) : (
+                displayMessages.map((message, index) => {
+                  // Handle both UIMessage format and BaseMessage format
+                  const isUIMessage = 'parts' in message
 
-                let textContent = ''
-                let messageRole: 'user' | 'assistant' | 'system' = 'user'
+                  let textContent = ''
+                  let messageRole: 'user' | 'assistant' | 'system' = 'user'
 
-                if (isUIMessage) {
-                  // Handle UIMessage format
-                  const uiMessage = message as ClientMessage
-                  textContent =
-                    uiMessage.parts?.find((part) => part.type === 'text')
-                      ?.text || ''
-                  messageRole = uiMessage.role
-                } else {
-                  // Handle BaseMessage format
-                  const baseMessage = message as BaseMessage
-                  if (typeof baseMessage.content === 'string') {
-                    textContent = baseMessage.content
-                  } else if (Array.isArray(baseMessage.content)) {
-                    textContent = baseMessage.content
-                      .filter(
-                        (part: unknown) =>
-                          typeof part === 'object' &&
-                          part !== null &&
-                          'type' in part &&
-                          part.type === 'text'
-                      )
-                      .map((part: unknown) => {
-                        const textPart = part as { text?: string }
-                        return textPart.text || ''
-                      })
-                      .join('')
+                  if (isUIMessage) {
+                    // Handle UIMessage format
+                    const uiMessage = message as ClientMessage
+                    textContent =
+                      uiMessage.parts?.find((part) => part.type === 'text')
+                        ?.text || ''
+                    messageRole = uiMessage.role
                   } else {
-                    textContent = JSON.stringify(baseMessage.content)
+                    // Handle BaseMessage format
+                    const baseMessage = message as BaseMessage
+                    if (typeof baseMessage.content === 'string') {
+                      textContent = baseMessage.content
+                    } else if (Array.isArray(baseMessage.content)) {
+                      textContent = baseMessage.content
+                        .filter(
+                          (part: unknown) =>
+                            typeof part === 'object' &&
+                            part !== null &&
+                            'type' in part &&
+                            part.type === 'text'
+                        )
+                        .map((part: unknown) => {
+                          const textPart = part as { text?: string }
+                          return textPart.text || ''
+                        })
+                        .join('')
+                    } else {
+                      textContent = JSON.stringify(baseMessage.content)
+                    }
+                    messageRole =
+                      baseMessage._getType() === 'human' ? 'user' : 'assistant'
                   }
-                  messageRole =
-                    baseMessage._getType() === 'human' ? 'user' : 'assistant'
-                }
 
-                return (
-                  <div
-                    key={isUIMessage ? message.id : `msg-${index}`}
-                    className={`rounded-lg p-4 ${
-                      messageRole === 'user'
-                        ? 'ml-auto max-w-[80%] bg-blue-600 text-white shadow-lg'
-                        : 'mr-auto max-w-[80%] border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800'
-                    }`}
-                  >
-                    <div className="mb-2 text-xs font-medium opacity-75">
-                      {messageRole === 'user' ? 'You' : 'AI Assistant'}
+                  return (
+                    <div
+                      key={isUIMessage ? message.id : `msg-${index}`}
+                      className={`rounded-lg p-4 ${
+                        messageRole === 'user'
+                          ? 'ml-auto max-w-[80%] bg-blue-600 text-white shadow-lg'
+                          : 'mr-auto max-w-[80%] border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800'
+                      }`}
+                    >
+                      <div className="mb-2 text-xs font-medium opacity-75">
+                        {messageRole === 'user' ? 'You' : 'AI Assistant'}
+                      </div>
+                      <div className="message-content">
+                        <MessageContent
+                          content={textContent}
+                          role={messageRole}
+                        />
+                      </div>
                     </div>
-                    <div className="message-content">
-                      <MessageContent
-                        content={textContent}
-                        role={messageRole}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })
+              )}
               {isLoading && (
                 <div className="mr-auto max-w-[80%] rounded-lg bg-gray-100 p-4 dark:bg-gray-800">
                   <div className="mb-2 text-sm font-semibold">AI</div>
