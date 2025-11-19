@@ -10,6 +10,7 @@ import { ConversationSidebar } from '@/components/ConversationSidebar'
 import ReactMarkdown from 'react-markdown'
 import { BaseMessage } from '@langchain/core/messages'
 import { ChatSkeleton } from '@/components/ChatSkeleton'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 // Component to render message content with markdown support using react-markdown
 function MessageContent({ content, role }: { content: string; role: string }) {
@@ -406,6 +407,7 @@ function ChatContent() {
             <span className="hidden text-sm text-gray-600 sm:block dark:text-gray-400">
               {user.email}
             </span>
+            <ThemeToggle />
             <SignOutButton />
           </div>
         </div>
