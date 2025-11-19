@@ -20,13 +20,14 @@ export function ConversationSidebar({
   onNewConversation,
   isCollapsed,
   onToggleCollapse,
-  loading = false
+  loading = false,
 }: ConversationSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredConversations = conversations.filter(conversation =>
-    conversation.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conversation.thread_id.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredConversations = conversations.filter(
+    (conversation) =>
+      conversation.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conversation.thread_id.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const formatDate = (dateString: string | null | undefined) => {
@@ -49,13 +50,11 @@ export function ConversationSidebar({
   return (
     <>
       {/* Sidebar */}
-      <div className={`
-        fixed left-0 top-0 h-full bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800
-        transition-all duration-300 ease-in-out z-20
-        ${isCollapsed ? 'w-16' : 'w-80'}
-      `}>
+      <div
+        className={`fixed top-0 left-0 z-20 h-full border-r border-gray-200 bg-white transition-all duration-300 ease-in-out dark:border-gray-800 dark:bg-gray-900 ${isCollapsed ? 'w-16' : 'w-80'} `}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-between border-b border-gray-200 p-4 dark:border-gray-800">
           {!isCollapsed && (
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Conversations
@@ -63,41 +62,67 @@ export function ConversationSidebar({
           )}
           <button
             onClick={onToggleCollapse}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="rounded-lg p-2 transition-colors hover:bg-gray-100 dark:hover:bg-gray-800"
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <svg
-              className={`w-5 h-5 text-gray-500 dark:text-gray-400 transition-transform ${isCollapsed ? 'rotate-180' : ''
-                }`}
+              className={`h-5 w-5 text-gray-500 transition-transform dark:text-gray-400 ${
+                isCollapsed ? 'rotate-180' : ''
+              }`}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
         </div>
 
         {/* New Conversation Button */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="border-b border-gray-200 p-4 dark:border-gray-800">
           {!isCollapsed ? (
             <button
               onClick={onNewConversation}
-              className="w-full flex items-center gap-3 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-white transition-colors hover:bg-blue-700"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
               </svg>
               New Chat
             </button>
           ) : (
             <button
               onClick={onNewConversation}
-              className="w-full flex justify-center p-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              className="flex w-full justify-center rounded-lg bg-blue-600 p-3 text-white transition-colors hover:bg-blue-700"
               title="New Chat"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
               </svg>
             </button>
           )}
@@ -105,22 +130,27 @@ export function ConversationSidebar({
 
         {/* Search */}
         {!isCollapsed && (
-          <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="border-b border-gray-200 p-4 dark:border-gray-800">
             <div className="relative">
               <svg
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
+                className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
               <input
                 type="text"
                 placeholder="Search conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pr-4 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800"
               />
             </div>
           </div>
@@ -130,22 +160,50 @@ export function ConversationSidebar({
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="p-4 text-center">
-              <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2"></div>
-              {!isCollapsed && <p className="text-sm text-gray-500 dark:text-gray-400">Loading conversations...</p>}
+              <div className="mx-auto mb-2 h-6 w-6 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"></div>
+              {!isCollapsed && (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Loading conversations...
+                </p>
+              )}
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="p-4 text-center">
               {!isCollapsed ? (
                 <div>
-                  <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  <svg
+                    className="mx-auto mb-4 h-12 w-12 text-gray-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                    />
                   </svg>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm">No conversations yet</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">Start a new chat to begin</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No conversations yet
+                  </p>
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+                    Start a new chat to begin
+                  </p>
                 </div>
               ) : (
-                <svg className="w-6 h-6 text-gray-400 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                <svg
+                  className="mx-auto h-6 w-6 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                  />
                 </svg>
               )}
             </div>
@@ -155,36 +213,45 @@ export function ConversationSidebar({
                 <button
                   key={conversation.id}
                   onClick={() => onConversationSelect(conversation.id)}
-                  className={`
-                    w-full text-left p-3 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 mb-1
-                    ${currentConversationId === conversation.id
-                      ? 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800'
+                  className={`mb-1 w-full rounded-lg p-3 text-left transition-colors hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                    currentConversationId === conversation.id
+                      ? 'border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20'
                       : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                    }
-                  `}
-                  title={isCollapsed ? conversation.title || 'Untitled' : undefined}
+                  } `}
+                  title={
+                    isCollapsed ? conversation.title || 'Untitled' : undefined
+                  }
                 >
                   <div className="flex items-start gap-3">
                     <svg
-                      className={`w-4 h-4 mt-0.5 flex-shrink-0 ${currentConversationId === conversation.id
+                      className={`mt-0.5 h-4 w-4 flex-shrink-0 ${
+                        currentConversationId === conversation.id
                           ? 'text-blue-600 dark:text-blue-400'
                           : 'text-gray-400 dark:text-gray-500'
-                        }`}
+                      }`}
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
                     </svg>
                     {!isCollapsed && (
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium truncate ${currentConversationId === conversation.id
-                            ? 'text-blue-900 dark:text-blue-100'
-                            : 'text-gray-900 dark:text-white'
-                          }`}>
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`truncate text-sm font-medium ${
+                            currentConversationId === conversation.id
+                              ? 'text-blue-900 dark:text-blue-100'
+                              : 'text-gray-900 dark:text-white'
+                          }`}
+                        >
                           {conversation.title || 'Untitled Conversation'}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                           {formatDate(conversation.updated_at)}
                         </p>
                       </div>
@@ -200,7 +267,7 @@ export function ConversationSidebar({
       {/* Overlay for mobile (when sidebar is expanded) */}
       {!isCollapsed && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-10 lg:hidden"
+          className="bg-opacity-50 fixed inset-0 z-10 bg-black lg:hidden"
           onClick={onToggleCollapse}
         />
       )}

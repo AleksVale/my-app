@@ -31,7 +31,10 @@ export function createAgentGraph() {
         default: () => undefined,
       },
       data: {
-        reducer: (current: Record<string, unknown> | undefined, update: Record<string, unknown> | undefined) => {
+        reducer: (
+          current: Record<string, unknown> | undefined,
+          update: Record<string, unknown> | undefined
+        ) => {
           // Merge data objects
           return { ...current, ...update }
         },
@@ -45,29 +48,29 @@ export function createAgentGraph() {
     .addNode(NodeNames.GENERAL, generalAgentNode)
     .addEdge(START, NodeNames.SUPERVISOR)
     .addConditionalEdges(
-    NodeNames.SUPERVISOR,
-    (state: MultiAgentState) => {
-      // Route based on the 'next' field set by supervisor
+      NodeNames.SUPERVISOR,
+      (state: MultiAgentState) => {
+        // Route based on the 'next' field set by supervisor
         return state.next || 'END'
-    },
-    {
-      [NodeNames.WEATHER]: NodeNames.WEATHER,
-      [NodeNames.NEWS]: NodeNames.NEWS,
-      [NodeNames.GENERAL]: NodeNames.GENERAL,
-        'END': END,
-    }
-  )
+      },
+      {
+        [NodeNames.WEATHER]: NodeNames.WEATHER,
+        [NodeNames.NEWS]: NodeNames.NEWS,
+        [NodeNames.GENERAL]: NodeNames.GENERAL,
+        END: END,
+      }
+    )
     .addConditionalEdges(
-    NodeNames.WEATHER,
-    (state: MultiAgentState) => {
-      // If we need news after weather, go to news, otherwise end
+      NodeNames.WEATHER,
+      (state: MultiAgentState) => {
+        // If we need news after weather, go to news, otherwise end
         return state.next || 'END'
-    },
-    {
-      [NodeNames.NEWS]: NodeNames.NEWS,
-        'END': END,
-    }
-  )
+      },
+      {
+        [NodeNames.NEWS]: NodeNames.NEWS,
+        END: END,
+      }
+    )
     .addEdge(NodeNames.NEWS, END)
     .addEdge(NodeNames.GENERAL, END)
     .compile({ checkpointer })
@@ -86,4 +89,3 @@ export function getCheckpointSaver() {
  * Type for the compiled graph
  */
 export type AgentGraph = ReturnType<typeof createAgentGraph>
-

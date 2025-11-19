@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "generate:types": "supabase gen types typescript --local > lib/supabase/database.types.ts || supabase gen types typescript --project-id $SUPABASE_PROJECT_ID > lib/supabase/database.types.ts"
   },
   "dependencies": {
@@ -37,6 +39,8 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "^9",
     "eslint-config-next": "16.0.3",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.7.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

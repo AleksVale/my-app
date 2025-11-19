@@ -16,7 +16,8 @@ export interface ConversationWithMessages extends Conversation {
 
 export function useConversations(userId: string | null) {
   const [conversations, setConversations] = useState<Conversation[]>([])
-  const [currentConversation, setCurrentConversation] = useState<ConversationWithMessages | null>(null)
+  const [currentConversation, setCurrentConversation] =
+    useState<ConversationWithMessages | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -29,14 +30,18 @@ export function useConversations(userId: string | null) {
       const response = await fetch('/api/conversations')
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }))
         throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
       const data = await response.json()
       setConversations(data.conversations || [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load conversations')
+      setError(
+        err instanceof Error ? err.message : 'Failed to load conversations'
+      )
       console.error('Load conversations error:', err)
     } finally {
       setLoading(false)
@@ -50,7 +55,9 @@ export function useConversations(userId: string | null) {
       const response = await fetch(`/api/conversations/${conversationId}`)
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }))
         throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
@@ -59,19 +66,21 @@ export function useConversations(userId: string | null) {
 
       setCurrentConversation({
         ...conversation,
-        messages: messages || []
+        messages: messages || [],
       })
 
       // Update conversations list if this conversation wasn't in it
-      setConversations(prev => {
-        const exists = prev.find(c => c.id === conversationId)
+      setConversations((prev) => {
+        const exists = prev.find((c) => c.id === conversationId)
         if (!exists) {
           return [conversation, ...prev]
         }
         return prev
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load conversation')
+      setError(
+        err instanceof Error ? err.message : 'Failed to load conversation'
+      )
       console.error('Load conversation error:', err)
     } finally {
       setLoading(false)
@@ -90,12 +99,14 @@ export function useConversations(userId: string | null) {
         body: JSON.stringify({
           threadId,
           mode,
-          title: 'New Conversation'
-        })
+          title: 'New Conversation',
+        }),
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }))
         throw new Error(errorData.error || `HTTP ${response.status}`)
       }
 
@@ -104,13 +115,15 @@ export function useConversations(userId: string | null) {
 
       setCurrentConversation({
         ...conversation,
-        messages: []
+        messages: [],
       })
 
       // Add to conversations list
-      setConversations(prev => [conversation, ...prev])
+      setConversations((prev) => [conversation, ...prev])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create conversation')
+      setError(
+        err instanceof Error ? err.message : 'Failed to create conversation'
+      )
       console.error('Start new conversation error:', err)
     } finally {
       setLoading(false)
@@ -119,23 +132,29 @@ export function useConversations(userId: string | null) {
 
   // Update conversation title
   const updateConversationTitle = (conversationId: string, title: string) => {
-    setConversations(prev => prev.map(conv =>
-      conv.id === conversationId ? { ...conv, title } : conv
-    ))
+    setConversations((prev) =>
+      prev.map((conv) =>
+        conv.id === conversationId ? { ...conv, title } : conv
+      )
+    )
 
     if (currentConversation?.id === conversationId) {
-      setCurrentConversation(prev => prev ? { ...prev, title } : null)
+      setCurrentConversation((prev) => (prev ? { ...prev, title } : null))
     }
   }
 
   // Add messages to current conversation
   const addMessagesToCurrent = (messages: ClientMessage[]) => {
     if (currentConversation) {
-      setCurrentConversation(prev => prev ? {
-        ...prev,
-        messages: [...prev.messages, ...messages],
-        updated_at: new Date().toISOString()
-      } : null)
+      setCurrentConversation((prev) =>
+        prev
+          ? {
+              ...prev,
+              messages: [...prev.messages, ...messages],
+              updated_at: new Date().toISOString(),
+            }
+          : null
+      )
     }
   }
 
@@ -156,6 +175,6 @@ export function useConversations(userId: string | null) {
     startNewConversation,
     updateConversationTitle,
     addMessagesToCurrent,
-    refreshConversations: loadConversations
+    refreshConversations: loadConversations,
   }
 }

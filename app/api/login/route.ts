@@ -14,10 +14,7 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('❌ Server login error:', error)
-      return NextResponse.json(
-        { error: error.message },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: error.message }, { status: 401 })
     }
 
     // Retornar sucesso - os cookies serão automaticamente salvos pelo Supabase
@@ -26,9 +23,8 @@ export async function POST(request: Request) {
       user: {
         id: data.user?.id,
         email: data.user?.email,
-      }
+      },
     })
-
   } catch (error) {
     console.error('❌ Server login exception:', error)
     return NextResponse.json(

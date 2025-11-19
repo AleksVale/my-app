@@ -1,11 +1,17 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
-import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages'
+import {
+  HumanMessage,
+  AIMessage,
+  SystemMessage,
+} from '@langchain/core/messages'
 import { MultiAgentState, NodeNames } from '../types'
 
 /**
  * Supervisor node that analyzes user intent and routes to appropriate agents
  */
-export async function supervisorNode(state: MultiAgentState): Promise<Partial<MultiAgentState>> {
+export async function supervisorNode(
+  state: MultiAgentState
+): Promise<Partial<MultiAgentState>> {
   const messages = state.messages || []
   const lastMessage = messages[messages.length - 1]
 
@@ -20,10 +26,12 @@ export async function supervisorNode(state: MultiAgentState): Promise<Partial<Mu
     modelName: 'gemini-2.0-flash',
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
 
-    temperature: 0  })
+    temperature: 0,
+  })
 
   // Create a prompt to analyze user intent
-  const systemPrompt = new SystemMessage(`You are a supervisor AI that routes user queries to the appropriate specialized agent.
+  const systemPrompt =
+    new SystemMessage(`You are a supervisor AI that routes user queries to the appropriate specialized agent.
 
 Analyze the user's message and determine which agent(s) should handle it:
 - "weather": For weather-related queries (current weather, forecasts, temperature, etc.)
@@ -82,4 +90,3 @@ User: "What's the weather in NYC and any news about climate change?" → "weathe
     }
   }
 }
-

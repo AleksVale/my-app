@@ -122,6 +122,7 @@ my-app/
 ## Features
 
 ### 💬 Modern Chat Interface
+
 - **Conversation Sidebar**: Like Gemini/ChatGPT with expandable history
 - **Persistent Conversations**: All chats saved to database with thread management
 - **Clean Layout**: Responsive design with collapsible sidebar
@@ -130,11 +131,13 @@ my-app/
 ### 🤖 Dual Chat Modes
 
 **Simple Chat Mode**
+
 - Direct AI responses using Google Gemini
 - Fast, streaming responses
 - Perfect for general conversations
 
 **Agent Chat Mode** (New! 🎉)
+
 - Multi-agent system powered by LangGraph
 - Specialized agents for different tasks:
   - **Weather Agent**: Real-time weather data from WeatherAPI.com
@@ -147,19 +150,24 @@ my-app/
 ## API Routes
 
 ### `/api/chat`
+
 Streaming AI chat endpoint using Vercel AI SDK with LangSmith observability.
 
 ### `/api/agent-chat` (New!)
+
 Multi-agent chat endpoint powered by LangGraph. Features:
+
 - Supervisor-based routing to specialized agents
 - Tool usage for weather and news queries
 - Conversation persistence with thread management
 - Full LangSmith tracing and observability
 
 ### `/api/chat/tools`
+
 AI chat endpoint with tools support and LangSmith tracing.
 
 ### `/api/agents`
+
 LangGraph agent execution endpoint for complex agent workflows.
 
 ## Usage Examples
@@ -171,7 +179,8 @@ LangGraph agent execution endpoint for complex agent workflows.
 import { useAIChat } from '@/lib/ai/hooks'
 
 export default function SimpleChatComponent() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useAIChat()
+  const { messages, input, handleInputChange, handleSubmit, isLoading } =
+    useAIChat()
 
   return (
     <form onSubmit={handleSubmit}>
@@ -180,7 +189,9 @@ export default function SimpleChatComponent() {
         Send
       </button>
       {messages.map((m) => (
-        <div key={m.id}>{m.role}: {m.content}</div>
+        <div key={m.id}>
+          {m.role}: {m.content}
+        </div>
       ))}
     </form>
   )
@@ -194,14 +205,21 @@ export default function SimpleChatComponent() {
 import { useAgentChat } from '@/lib/ai/hooks'
 
 export default function AgentChatComponent() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, threadId } = useAgentChat()
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    threadId,
+  } = useAgentChat()
 
   return (
     <div>
       <p>Thread ID: {threadId}</p>
       <form onSubmit={handleSubmit}>
-        <input 
-          value={input} 
+        <input
+          value={input}
           onChange={handleInputChange}
           placeholder="Try: What's the weather in London?"
         />
@@ -210,7 +228,9 @@ export default function AgentChatComponent() {
         </button>
       </form>
       {messages.map((m) => (
-        <div key={m.id}>{m.role}: {m.content}</div>
+        <div key={m.id}>
+          {m.role}: {m.content}
+        </div>
       ))}
     </div>
   )
@@ -238,9 +258,9 @@ const response = await fetch('/api/chat/tools', {
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     messages: [
-      { role: 'user', content: 'What is the weather in San Francisco?' }
-    ]
-  })
+      { role: 'user', content: 'What is the weather in San Francisco?' },
+    ],
+  }),
 })
 
 const result = await response.json()
@@ -268,21 +288,25 @@ User
 ### Agent Capabilities
 
 **Supervisor**
+
 - Analyzes user intent using Gemini
 - Routes to appropriate specialized agent(s)
 - Can coordinate multiple agents for complex queries
 
 **Weather Agent**
+
 - Fetches real-time weather data
 - Provides current conditions and forecasts
 - Formats data in user-friendly markdown
 
 **News Agent**
+
 - Searches The Guardian's article database
 - Returns relevant news with summaries and links
 - Handles topical queries about current events
 
 **General Agent**
+
 - Handles conversational queries
 - Provides explanations and general information
 - Fallback for queries not requiring tools
@@ -290,11 +314,13 @@ User
 ### Persistence Strategy
 
 **LangGraph Checkpointing** (Active Sessions)
+
 - In-memory state management using `MemorySaver`
 - Maintains conversation context during active sessions
 - Thread-based conversation tracking
 
 **Supabase** (Long-term Storage)
+
 - Permanent storage of all conversations and messages
 - User-specific conversation history
 - Enables conversation resumption and analytics
@@ -304,6 +330,7 @@ User
 Run the migration in `lib/supabase/migrations/001_conversations.sql` to create:
 
 **conversations table**
+
 - `id`: UUID primary key
 - `user_id`: References auth.users
 - `thread_id`: Unique conversation identifier
@@ -311,6 +338,7 @@ Run the migration in `lib/supabase/migrations/001_conversations.sql` to create:
 - `created_at`, `updated_at`: Timestamps
 
 **conversation_messages table**
+
 - `id`: UUID primary key
 - `conversation_id`: References conversations
 - `role`: user | assistant | system
@@ -332,6 +360,7 @@ See [TESTING_GUIDE.md](./TESTING_GUIDE.md) for comprehensive testing instruction
 - Troubleshooting guide
 
 Example test queries:
+
 - "What's the weather in London?"
 - "Latest news about AI"
 - "Weather in NYC and news about climate change"

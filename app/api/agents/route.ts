@@ -29,22 +29,32 @@ export async function POST(req: NextRequest) {
     // }
 
     // Convert messages to LangChain format
-    const langchainMessages = messages.map((msg: { role: string; content: string }) => {
-      return new HumanMessage(msg.content)
-    })
+    const langchainMessages = messages.map(
+      (msg: { role: string; content: string }) => {
+        return new HumanMessage(msg.content)
+      }
+    )
 
     // Run the agent
     const result = await runAgent(langchainMessages)
 
     // Extract the last AI message content
-    const lastMessage = result.messages[result.messages.length - 1] as AIMessage | undefined
+    const lastMessage = result.messages[result.messages.length - 1] as
+      | AIMessage
+      | undefined
     let responseText = 'No response generated'
 
     if (lastMessage && typeof lastMessage.content === 'string') {
       responseText = lastMessage.content
     } else if (lastMessage && Array.isArray(lastMessage.content)) {
       responseText = lastMessage.content
-        .filter((part: unknown) => typeof part === 'object' && part !== null && 'type' in part && part.type === 'text')
+        .filter(
+          (part: unknown) =>
+            typeof part === 'object' &&
+            part !== null &&
+            'type' in part &&
+            part.type === 'text'
+        )
         .map((part: unknown) => {
           const textPart = part as { text?: string }
           return textPart.text || ''
@@ -59,9 +69,11 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Agent API error:', error)
     return NextResponse.json(
-      { error: 'Internal Server Error', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Internal Server Error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     )
   }
 }
-

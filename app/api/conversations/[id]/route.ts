@@ -34,7 +34,10 @@ export async function GET(
       .single()
 
     if (conversationError || !conversation) {
-      return NextResponse.json({ error: 'Conversation not found' }, { status: 404 })
+      return NextResponse.json(
+        { error: 'Conversation not found' },
+        { status: 404 }
+      )
     }
 
     // Load messages
@@ -43,25 +46,31 @@ export async function GET(
     // Convert LangChain messages to plain objects for JSON response
     const serializedMessages = messages.map((msg, index) => {
       const isHuman = msg._getType() === 'human'
-      const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)
+      const content =
+        typeof msg.content === 'string'
+          ? msg.content
+          : JSON.stringify(msg.content)
 
       return {
         id: `msg_${index}`,
         role: isHuman ? 'user' : 'assistant',
         content: content,
         parts: [{ type: 'text', text: content }],
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       }
     })
 
     return NextResponse.json({
       conversation,
-      messages: serializedMessages
+      messages: serializedMessages,
     })
   } catch (error) {
     console.error('Load conversation API error:', error)
     return NextResponse.json(
-      { error: 'Internal Server Error', details: error instanceof Error ? error.message : 'Unknown error' },
+      {
+        error: 'Internal Server Error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
       { status: 500 }
     )
   }

@@ -3,8 +3,14 @@ import { z } from 'zod'
 
 // Schema for news tool input
 const newsInputSchema = z.object({
-  query: z.string().describe('The search query or topic to find news articles about'),
-  pageSize: z.number().optional().default(5).describe('Number of articles to return (1-10)'),
+  query: z
+    .string()
+    .describe('The search query or topic to find news articles about'),
+  pageSize: z
+    .number()
+    .optional()
+    .default(5)
+    .describe('Number of articles to return (1-10)'),
 })
 
 // Interface for Guardian API response
@@ -43,7 +49,10 @@ async function getNews(query: string, pageSize: number = 5): Promise<string> {
     const url = new URL('https://content.guardianapis.com/search')
     url.searchParams.set('api-key', apiKey)
     url.searchParams.set('q', query)
-    url.searchParams.set('page-size', Math.min(Math.max(pageSize, 1), 10).toString())
+    url.searchParams.set(
+      'page-size',
+      Math.min(Math.max(pageSize, 1), 10).toString()
+    )
     url.searchParams.set('show-fields', 'headline,trailText')
     url.searchParams.set('order-by', 'relevance')
 
@@ -70,11 +79,11 @@ async function getNews(query: string, pageSize: number = 5): Promise<string> {
     data.response.results.forEach((article, index) => {
       result += `**${index + 1}. ${article.webTitle}**\n`
       result += `*${article.sectionName}* - ${new Date(article.webPublicationDate).toLocaleDateString()}\n`
-      
+
       if (article.fields?.trailText) {
         result += `${article.fields.trailText}\n`
       }
-      
+
       result += `🔗 [Read more](${article.webUrl})\n\n`
     })
 
@@ -93,7 +102,8 @@ async function getNews(query: string, pageSize: number = 5): Promise<string> {
  */
 export const newsTool = new DynamicStructuredTool({
   name: 'get_news',
-  description: 'Search for news articles from The Guardian on any topic. Use this when users ask about news, current events, or recent information about specific topics.',
+  description:
+    'Search for news articles from The Guardian on any topic. Use this when users ask about news, current events, or recent information about specific topics.',
   schema: newsInputSchema,
   func: async ({ query, pageSize }) => {
     return await getNews(query, pageSize)
@@ -101,4 +111,3 @@ export const newsTool = new DynamicStructuredTool({
 })
 
 export { getNews }
-

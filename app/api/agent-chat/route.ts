@@ -39,11 +39,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-
     // Get or generate thread ID
     const threadId = providedThreadId || generateThreadId()
     // Get or create conversation in Supabase (agent mode)
-    const conversation = await getOrCreateConversation(user.id, threadId, 'agent')
+    const conversation = await getOrCreateConversation(
+      user.id,
+      threadId,
+      'agent'
+    )
 
     if (!conversation) {
       return NextResponse.json(
@@ -63,9 +66,10 @@ export async function POST(req: NextRequest) {
       const firstUserMessage = messages[0].content || messages[0].text || ''
       if (firstUserMessage) {
         // Create a concise title from the first message
-        const title = firstUserMessage.length > 50
-          ? `${firstUserMessage.substring(0, 50)}...`
-          : firstUserMessage
+        const title =
+          firstUserMessage.length > 50
+            ? `${firstUserMessage.substring(0, 50)}...`
+            : firstUserMessage
 
         await updateConversation(conversation.id, { title })
       }
@@ -73,13 +77,17 @@ export async function POST(req: NextRequest) {
 
     // Convert incoming messages to LangChain format
     const newUserMessage = messages[messages.length - 1]
-    const userMessage = new HumanMessage(newUserMessage.content || newUserMessage.text || '')
+    const userMessage = new HumanMessage(
+      newUserMessage.content || newUserMessage.text || ''
+    )
 
     // Save user message to Supabase
     await saveMessage(
       conversation.id,
       'user',
-      typeof userMessage.content === 'string' ? userMessage.content : JSON.stringify(userMessage.content)
+      typeof userMessage.content === 'string'
+        ? userMessage.content
+        : JSON.stringify(userMessage.content)
     )
 
     // Combine existing and new messages
@@ -89,19 +97,16 @@ export async function POST(req: NextRequest) {
     const graph = createAgentGraph()
 
     // Wrap graph execution with LangSmith tracing
-    const tracedInvoke = traceGraphExecution(
-      async (msgs: BaseMessage[]) => {
-        return await graph.invoke(
-          { messages: msgs },
-          {
-            configurable: {
-              thread_id: threadId,
-            },
-          }
-        )
-      },
-      'multi-agent-chat'
-    )
+    const tracedInvoke = traceGraphExecution(async (msgs: BaseMessage[]) => {
+      return await graph.invoke(
+        { messages: msgs },
+        {
+          configurable: {
+            thread_id: threadId,
+          },
+        }
+      )
+    }, 'multi-agent-chat')
 
     // Invoke the graph with LangSmith tracing
     const result = await tracedInvoke(allMessages)
@@ -123,8 +128,14 @@ export async function POST(req: NextRequest) {
       responseContent = lastMessage.content
     } else if (Array.isArray(lastMessage.content)) {
       responseContent = lastMessage.content
-        .filter((part: unknown): part is { type: string; text?: string } =>
-          typeof part === 'object' && part !== null && typeof part === 'object' && 'type' in part && part.type === 'text' && 'text' in part
+        .filter(
+          (part: unknown): part is { type: string; text?: string } =>
+            typeof part === 'object' &&
+            part !== null &&
+            typeof part === 'object' &&
+            'type' in part &&
+            part.type === 'text' &&
+            'text' in part
         )
         .map((part: { type: string; text?: string }) => part.text || '')
         .join('')
@@ -159,4 +170,3 @@ export async function POST(req: NextRequest) {
     )
   }
 }
-

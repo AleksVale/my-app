@@ -1,5 +1,9 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
-import { AIMessage, AIMessageFields, HumanMessage } from '@langchain/core/messages'
+import {
+  AIMessage,
+  AIMessageFields,
+  HumanMessage,
+} from '@langchain/core/messages'
 import { MultiAgentState, NodeNames } from '../types'
 import { weatherTool } from '../tools/weather'
 import { StructuredToolCallInput } from '@langchain/core/tools'
@@ -7,13 +11,21 @@ import { StructuredToolCallInput } from '@langchain/core/tools'
 /**
  * Weather agent node that handles weather-related queries
  */
-export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<MultiAgentState>> {
+export async function weatherAgentNode(
+  state: MultiAgentState
+): Promise<Partial<MultiAgentState>> {
   const messages = state.messages || []
-  const lastUserMessage = [...messages].reverse().find((m) => m._getType() === 'human')
+  const lastUserMessage = [...messages]
+    .reverse()
+    .find((m) => m._getType() === 'human')
 
   if (!lastUserMessage) {
     return {
-      messages: [new AIMessage('I need a question to help you with weather information.')],
+      messages: [
+        new AIMessage(
+          'I need a question to help you with weather information.'
+        ),
+      ],
       next: state.data?.needsNews ? NodeNames.NEWS : 'END',
     }
   }
@@ -33,7 +45,9 @@ export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<
     if (response.tool_calls && response.tool_calls.length > 0) {
       // Execute the weather tool
       const toolCall = response.tool_calls[0]
-      const toolResult = await weatherTool.invoke(toolCall.args as StructuredToolCallInput<typeof weatherTool.schema>)
+      const toolResult = await weatherTool.invoke(
+        toolCall.args as StructuredToolCallInput<typeof weatherTool.schema>
+      )
 
       // Create a final response incorporating the tool result
       const finalLLM = new ChatGoogleGenerativeAI({
@@ -45,13 +59,18 @@ export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<
       const finalMessages = [
         ...messages,
         new AIMessage('Let me get the weather information for you.'),
-        new HumanMessage(`Here is the weather data:\n\n${toolResult}\n\nPlease provide a natural, conversational response based on this data.`),
+        new HumanMessage(
+          `Here is the weather data:\n\n${toolResult}\n\nPlease provide a natural, conversational response based on this data.`
+        ),
       ]
 
       const finalResponse = await finalLLM.invoke(finalMessages)
 
       return {
-        messages: [...messages, new AIMessage(finalResponse.content as string | AIMessageFields)],
+        messages: [
+          ...messages,
+          new AIMessage(finalResponse.content as string | AIMessageFields),
+        ],
         next: state.data?.needsNews ? NodeNames.NEWS : 'END',
       }
     } else {
@@ -63,11 +82,16 @@ export async function weatherAgentNode(state: MultiAgentState): Promise<Partial<
     }
   } catch (error) {
     console.error('Weather agent error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
     return {
-      messages: [...messages, new AIMessage(`I encountered an error while fetching weather information: ${errorMessage}`)],
+      messages: [
+        ...messages,
+        new AIMessage(
+          `I encountered an error while fetching weather information: ${errorMessage}`
+        ),
+      ],
       next: state.data?.needsNews ? NodeNames.NEWS : 'END',
     }
   }
 }
-

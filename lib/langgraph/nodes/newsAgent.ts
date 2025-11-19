@@ -1,5 +1,9 @@
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
-import { AIMessage, AIMessageFields, HumanMessage } from '@langchain/core/messages'
+import {
+  AIMessage,
+  AIMessageFields,
+  HumanMessage,
+} from '@langchain/core/messages'
 import { MultiAgentState, NodeNames } from '../types'
 import { newsTool } from '../tools/news'
 import { StructuredToolCallInput } from '@langchain/core/tools'
@@ -7,13 +11,19 @@ import { StructuredToolCallInput } from '@langchain/core/tools'
 /**
  * News agent node that handles news-related queries
  */
-export async function newsAgentNode(state: MultiAgentState): Promise<Partial<MultiAgentState>> {
+export async function newsAgentNode(
+  state: MultiAgentState
+): Promise<Partial<MultiAgentState>> {
   const messages = state.messages || []
-  const lastUserMessage = [...messages].reverse().find((m) => m._getType() === 'human')
+  const lastUserMessage = [...messages]
+    .reverse()
+    .find((m) => m._getType() === 'human')
 
   if (!lastUserMessage) {
     return {
-      messages: [new AIMessage('I need a question to help you with news information.')],
+      messages: [
+        new AIMessage('I need a question to help you with news information.'),
+      ],
       next: 'END',
     }
   }
@@ -33,7 +43,9 @@ export async function newsAgentNode(state: MultiAgentState): Promise<Partial<Mul
     if (response.tool_calls && response.tool_calls.length > 0) {
       // Execute the news tool
       const toolCall = response.tool_calls[0]
-      const toolResult = await newsTool.invoke(toolCall.args as StructuredToolCallInput<typeof newsTool.schema>)
+      const toolResult = await newsTool.invoke(
+        toolCall.args as StructuredToolCallInput<typeof newsTool.schema>
+      )
 
       // Create a final response incorporating the tool result
       const finalLLM = new ChatGoogleGenerativeAI({
@@ -45,13 +57,18 @@ export async function newsAgentNode(state: MultiAgentState): Promise<Partial<Mul
       const finalMessages = [
         ...messages,
         new AIMessage('Let me search for the latest news for you.'),
-        new HumanMessage(`Here are the news articles:\n\n${toolResult}\n\nPlease provide a natural, conversational summary of these articles.`),
+        new HumanMessage(
+          `Here are the news articles:\n\n${toolResult}\n\nPlease provide a natural, conversational summary of these articles.`
+        ),
       ]
 
       const finalResponse = await finalLLM.invoke(finalMessages)
 
       return {
-        messages: [...messages, new AIMessage(finalResponse.content as string | AIMessageFields)],
+        messages: [
+          ...messages,
+          new AIMessage(finalResponse.content as string | AIMessageFields),
+        ],
         next: 'END',
       }
     } else {
@@ -63,11 +80,16 @@ export async function newsAgentNode(state: MultiAgentState): Promise<Partial<Mul
     }
   } catch (error) {
     console.error('News agent error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
     return {
-      messages: [...messages, new AIMessage(`I encountered an error while fetching news: ${errorMessage}`)],
+      messages: [
+        ...messages,
+        new AIMessage(
+          `I encountered an error while fetching news: ${errorMessage}`
+        ),
+      ],
       next: 'END',
     }
   }
 }
-

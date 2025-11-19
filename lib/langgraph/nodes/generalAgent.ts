@@ -5,18 +5,25 @@ import { MultiAgentState, NodeNames } from '../types'
 /**
  * General agent node that handles conversational queries with sarcastic wit
  */
-export async function generalAgentNode(state: MultiAgentState): Promise<Partial<MultiAgentState>> {
+export async function generalAgentNode(
+  state: MultiAgentState
+): Promise<Partial<MultiAgentState>> {
   const messages = state.messages || []
 
   if (messages.length === 0) {
     return {
-      messages: [new AIMessage('Oh, look who decided to show up. What brilliant query do you have for me today?')],
+      messages: [
+        new AIMessage(
+          'Oh, look who decided to show up. What brilliant query do you have for me today?'
+        ),
+      ],
       next: 'END',
     }
   }
 
   // Create sarcastic system prompt
-  const sarcasticSystemPrompt = new SystemMessage(`You are a witty, sarcastic AI assistant with a sharp tongue and a dry sense of humor. Your personality traits:
+  const sarcasticSystemPrompt =
+    new SystemMessage(`You are a witty, sarcastic AI assistant with a sharp tongue and a dry sense of humor. Your personality traits:
 
 - Be hilariously sarcastic but still helpful
 - Use clever wordplay and exaggerated expressions
@@ -53,11 +60,16 @@ Remember: Be helpful underneath the sarcasm, and make conversations more enterta
     }
   } catch (error) {
     console.error('General agent error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error'
     return {
-      messages: [...messages, new AIMessage(`Oh fantastic, even I can mess up sometimes. Error encountered: ${errorMessage}. How utterly predictable.`)],
+      messages: [
+        ...messages,
+        new AIMessage(
+          `Oh fantastic, even I can mess up sometimes. Error encountered: ${errorMessage}. How utterly predictable.`
+        ),
+      ],
       next: 'END',
     }
   }
 }
-

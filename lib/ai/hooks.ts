@@ -42,7 +42,9 @@ export function useAgentChat(initialThreadId?: string | null) {
   const [messages, setMessages] = useState<ClientMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
-  const [threadId, setThreadId] = useState<string | null>(initialThreadId || null)
+  const [threadId, setThreadId] = useState<string | null>(
+    initialThreadId || null
+  )
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value)
@@ -76,8 +78,12 @@ export function useAgentChat(initialThreadId?: string | null) {
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || errorData.details || `HTTP ${response.status}`)
+        const errorData = await response
+          .json()
+          .catch(() => ({ error: 'Unknown error' }))
+        throw new Error(
+          errorData.error || errorData.details || `HTTP ${response.status}`
+        )
       }
 
       const data = await response.json()

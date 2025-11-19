@@ -1,10 +1,11 @@
-
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai'
 import { HumanMessage, AIMessage } from '@langchain/core/messages'
 import { AgentState } from './types'
 
 // Helper function to run the agent (simplified version)
-export async function runAgent(messages: (HumanMessage | AIMessage)[]): Promise<AgentState> {
+export async function runAgent(
+  messages: (HumanMessage | AIMessage)[]
+): Promise<AgentState> {
   // Initialize the LLM only when needed (not during build time)
   const llm = new ChatGoogleGenerativeAI({
     modelName: 'gemini-2.0-flash', // Keep original working model
@@ -20,4 +21,3 @@ export async function runAgent(messages: (HumanMessage | AIMessage)[]): Promise<
     data: {},
   }
 }
-

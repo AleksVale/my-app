@@ -4,7 +4,11 @@ import { z } from 'zod'
 // Schema for weather tool input
 const weatherInputSchema = z.object({
   city: z.string().describe('The city name to get weather information for'),
-  days: z.number().optional().default(1).describe('Number of days for forecast (1-3)'),
+  days: z
+    .number()
+    .optional()
+    .default(1)
+    .describe('Number of days for forecast (1-3)'),
 })
 
 // Interface for weather API response
@@ -62,8 +66,12 @@ async function getWeather(city: string, days: number = 1): Promise<string> {
     const response = await fetch(url.toString())
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: { message: 'Unknown error' } }))
-      throw new Error(error.error?.message || `Weather API error: ${response.status}`)
+      const error = await response
+        .json()
+        .catch(() => ({ error: { message: 'Unknown error' } }))
+      throw new Error(
+        error.error?.message || `Weather API error: ${response.status}`
+      )
     }
 
     const data: WeatherAPIResponse = await response.json()
@@ -103,7 +111,8 @@ async function getWeather(city: string, days: number = 1): Promise<string> {
  */
 export const weatherTool = new DynamicStructuredTool({
   name: 'get_weather',
-  description: 'Get current weather information and forecast for a specific city. Use this when users ask about weather, temperature, or atmospheric conditions.',
+  description:
+    'Get current weather information and forecast for a specific city. Use this when users ask about weather, temperature, or atmospheric conditions.',
   schema: weatherInputSchema,
   func: async ({ city, days }) => {
     return await getWeather(city, days)
@@ -111,4 +120,3 @@ export const weatherTool = new DynamicStructuredTool({
 })
 
 export { getWeather }
-

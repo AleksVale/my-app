@@ -54,11 +54,11 @@ export default async function Home() {
         <div className="mx-auto max-w-4xl px-4 text-center">
           {user ? (
             <div className="space-y-6">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
+              <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl dark:text-white">
                 Welcome back!
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400">
-                You're signed in as {user.email}
+                You&apos;re signed in as {user.email}
               </p>
               <div className="flex justify-center gap-4">
                 <Link
@@ -71,7 +71,7 @@ export default async function Home() {
             </div>
           ) : (
             <div className="space-y-6">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white sm:text-5xl">
+              <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl dark:text-white">
                 Welcome to My App
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400">

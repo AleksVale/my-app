@@ -34,4 +34,3 @@ export const NodeNames = {
 } as const
 
 export type NodeName = (typeof NodeNames)[keyof typeof NodeNames]
-

@@ -1,9 +1,13 @@
 import { createClient } from '@/utils/supabase/server'
-import { BaseMessage, HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages'
+import {
+  BaseMessage,
+  HumanMessage,
+  AIMessage,
+  SystemMessage,
+} from '@langchain/core/messages'
 import { Tables } from '@/lib/supabase/database.types'
 
 export type Conversation = Tables<'conversations'>
-
 
 /**
  * Create a new conversation
@@ -109,7 +113,7 @@ export async function saveMessage(
   const supabase = await createClient()
 
   // Ensure metadata is a valid JSON object for Supabase
-  const safeMetadata = metadata as unknown as { [key: string]: any }
+  const safeMetadata = metadata as unknown as { [key: string]: unknown }
 
   const { data, error } = await supabase
     .from('conversation_messages')
@@ -153,7 +157,10 @@ export async function saveMessages(
     return {
       conversation_id: conversationId,
       role,
-      content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
+      content:
+        typeof msg.content === 'string'
+          ? msg.content
+          : JSON.stringify(msg.content),
       metadata: {},
     }
   })
@@ -252,7 +259,9 @@ export async function updateConversation(
 /**
  * Get all conversations for a user
  */
-export async function getUserConversations(userId: string): Promise<Tables<'conversations'>[]> {
+export async function getUserConversations(
+  userId: string
+): Promise<Tables<'conversations'>[]> {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -271,7 +280,9 @@ export async function getUserConversations(userId: string): Promise<Tables<'conv
 /**
  * Delete a conversation and all its messages
  */
-export async function deleteConversation(conversationId: string): Promise<boolean> {
+export async function deleteConversation(
+  conversationId: string
+): Promise<boolean> {
   const supabase = await createClient()
 
   // Messages will be deleted automatically due to CASCADE
